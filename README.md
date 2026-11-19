@@ -1,15 +1,15 @@
 ﻿# Vathian Vault A5e Spells
 
-The v0.2.1 candidate for Foundry VTT v14 contains 819 native spell Items in one LevelDB compendium. Every spell has a fresh decision based on its converted rules and save header. The reference system is A5e 1.5.2 at commit `6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c`.
+The v0.2.2 candidate for Foundry VTT v14 contains 819 native spell Items in one LevelDB compendium. Every spell has a fresh decision based on its converted rules and save header. The reference system is A5e 1.5.2 at commit `6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c`.
 
 ## Install locally
 
 1. Use a disposable Foundry v14 instance or a separately authorized installation with official A5e 1.5.2 installed.
-2. Shut down the disposable instance. Extract `vathian-vault-a5e-spells-0.2.1.zip` into its user data `Data/modules/` directory. The module directory contains `module.json`, `packs/spells/`, and `scripts/`.
+2. Shut down the disposable instance. Extract `vathian-vault-a5e-spells-0.2.2.zip` into its user data `Data/modules/` directory. The module directory contains `module.json`, `packs/spells/`, and `scripts/`.
 3. Start that instance and enable **Vathian Vault A5e Spells** in a disposable A5e world. Open **Vathian Vault Spells** from the Compendium Packs tab as GM.
 4. Drag fresh compendium copies onto test actors. Copies already embedded in actors retain the data imported at the time. Activate the spell’s Action from the actor sheet. The adjacent description-sharing control posts text alone. Follow [the runtime acceptance steps](ACCEPTANCE.md).
 
-Use `releases/vathian-vault-a5e-spells-0.2.1.zip` for local installation. The manifest and version-specific ZIP both use `main` URLs, so they become available together when the approved update is merged. The download has no tag dependency.
+Use `releases/vathian-vault-a5e-spells-0.2.2.zip` for local installation. The manifest and version-specific ZIP both use `main` URLs, so they become available together when the approved update is merged. The download has no tag dependency.
 
 ## Mechanics
 
@@ -26,9 +26,9 @@ Use Node 22 or newer, the locally installed official Foundry CLI 3.0.5 with Clas
 
 ```powershell
 node --test
-node a5e-1.5.2.mjs ../vathian-spell-source-20261118 ../a5e-reference build/native-0.2.1-local
-node pack.mjs build/native-0.2.1-local foundry-cli.mjs build/release-0.2.1-local
-node verify-action-description-parity.mjs build/native-0.2.1-quest-excluded/items build/release-0.2.1-local/roundtrip build/native-0.2.1-local/audit.json
+node a5e-1.5.2.mjs ../vathian-spell-source-20261118 ../a5e-reference build/native-0.2.2-local
+node pack.mjs build/native-0.2.2-local foundry-cli.mjs build/release-0.2.2-local
+node verify-action-description-parity.mjs build/native-0.2.1-quest-excluded/items build/release-0.2.2-local/roundtrip build/native-0.2.2-local/audit.json
 ```
 
 The build checks the pinned A5e sources and all 819 hashes in `fresh-spell-review.ndjson`. The private `audit.json` records each spell’s mechanics rationale and each Action’s stable ID, reviewed selection, source rules hash and rendered description hash. The follow-up selector file contains only canonical IDs, Action IDs and source segment references. The pack script requires all 1,328 descriptions, compiles and unpacks a fresh ZIP through the official CLI, and compares all 819 Items. The parity command compares that unpack against the Quest-excluded baseline and permits changes only to `system.actions.*.description`. The release receipt records the hashes and coverage. Tests use offline sources and mocked chat execution. The disposable Foundry acceptance run remains open.

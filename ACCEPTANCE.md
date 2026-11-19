@@ -1,6 +1,6 @@
 # Foundry v14 and A5e 1.5.2 acceptance
 
-Run these checks in a disposable Foundry v14 user-data directory with A5e 1.5.2 and the v0.2.1 module enabled. Import fresh spells from the module pack onto a test caster. Give it a spellbook whose casting ability and DC differ from the actor defaults. In the test scene place the caster, a player-owned actor assigned to a test player, and an unowned NPC. Use one GM and one player client. Use the actor sheet’s activation control and leave the default rolls and prompts selected. The description-sharing control is a separate operation.
+Run these checks in a disposable Foundry v14 user-data directory with A5e 1.5.2 and the v0.2.2 module enabled. Import fresh spells from the module pack onto a test caster. Give it a spellbook whose casting ability and DC differ from the actor defaults. In the test scene place the caster, a player-owned actor assigned to a test player, and an unowned NPC. Use one GM and one player client. Use the actor sheet’s activation control and leave the default rolls and prompts selected. The description-sharing control is a separate operation.
 
 | Case | Expected result |
 | --- | --- |
