@@ -1,6 +1,6 @@
 ﻿# Vathian Vault A5e Spells
 
-The v0.2.0 review build for Foundry VTT v14 contains 819 native spell Items in one LevelDB compendium. The reference schema is A5e 1.5.2 at commit `6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c`. This is a partial automation update. The individual rules review covers 180 spells. The other 639 retain their existing manual actions.
+The v0.2.0 review build for Foundry VTT v14 contains 819 native spell Items in one LevelDB compendium. The reference schema is A5e 1.5.2 at commit `6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c`. This is a partial automation update. The individual rules review covers 594 spells, including 414 reviewed in the second pass. The other 225 retain their existing manual actions.
 
 ## Install locally
 
@@ -9,7 +9,7 @@ The v0.2.0 review build for Foundry VTT v14 contains 819 native spell Items in o
 3. Start that instance and enable **Vathian Vault A5e Spells** in a disposable A5e world. Open **Vathian Vault Spells** from the Compendium Packs tab as GM.
 4. Verify a same-name pair, a level-9 Quest spell, an explicit Herald-only spell, and a spell with a native area and concentration. The pack starts with player access disabled. The release was verified offline against official source and the LevelDB round trip. In-game startup, schema initialization, browsing, and activation still need a disposable Foundry test.
 
-For PR review, download `releases/vathian-vault-a5e-spells-0.2.0.zip` from the feature branch or commit and install manually. The manifest URL remains on `main`. The versioned download in the manifest will resolve once the approved release is merged and tagged `v0.2.0`. Keep main and the tag untouched during review. Never put credentials in `module.json`.
+Use `releases/vathian-vault-a5e-spells-0.2.0.zip` for local review. The remaining individual reviews are pending before a PR. The manifest URL remains on `main`. The versioned download in the manifest will resolve once the approved release is merged and tagged `v0.2.0`. Never put credentials in `module.json`.
 
 ## Mechanics
 
@@ -17,7 +17,7 @@ For PR review, download `releases/vathian-vault-a5e-spells-0.2.0.zip` from the f
 - Every spell includes its canonical rules in the visible Item description and exact source text in private namespaced flags. The default Action presents source-backed casting cost and timing, range, simple target or area, duration, and concentration where the headers are unambiguous. Components and unambiguous material consumption use the corresponding A5e spell fields.
 - For reviewed direct-damage casts, the native base-damage rolls are selected by default and run through A5e's Action activation to chat. The system may show its normal activation dialog first. Save prompts give defenders the save ability and result text. They use the caster's spellbook DC when appropriate, or the fixed DC stated in the rules. The user still determines the outcome, applies half or no damage, and chooses whether to click the separate chat damage control.
 - Use labeled follow-up Actions only when their trigger occurs. For attacks, roll the attack before selecting hit damage. Apply critical hits manually. One reviewed cantrip uses native character-level scaling. Selected upcasts have a separate increment roll, and other slot increases remain manual. Spell slots, material payments, actual HP application, automatic effects, repeated timing, and deity restrictions are outside the automation.
-- The private build audit records each canonical ID, review status, rationale, and rule hash. Unreviewed records can have full-text search hints for triage. Hints never create rolls or prompts. The v0.2.0 review build includes 33 spells with default cast damage, 78 with any native damage roll, 58 with native save prompts, and 14 with native attacks. These counts overlap.
+- The private build audit records each canonical ID, review status, rationale, and rule hash. Unreviewed records can have full-text search hints for triage. Hints never create rolls or prompts. This build includes 33 spells with default cast damage, 95 with any native damage roll, 173 with native save prompts, 28 with native attacks, and 171 with follow-up or mode actions. These counts overlap.
 
 ## Reproduce the private build
 

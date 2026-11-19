@@ -54,9 +54,27 @@ test('official-source-bound roll build preserves the corpus and gates later mech
   const castigate = actions('tome-castigate');
   assert.deepEqual(rolls(castigate[1]).map(roll => roll.formula), ['1d4', '1d4']);
   assert.equal(castigate[1].default, false);
+  const [fogCast, ...fogExposure] = actions('2e-wizard-237');
+  assert.equal(rolls(fogCast).length, 0);
+  assert.deepEqual(fogExposure.map(action => [action.default, rolls(action)[0].formula]),
+    [[false, '1'], [false, '2'], [false, '4'], [false, '8']]);
+  const [gatewayCast, fireGate, airGate, waterGate] = actions('2e-wizard-927');
+  assert.deepEqual([rolls(gatewayCast), prompts(gatewayCast)], [[], []]);
+  assert.deepEqual([rolls(fireGate)[0].formula, prompts(fireGate)[0].ability], ['8d6', 'dex']);
+  for (const action of [airGate, waterGate]) {
+    assert.deepEqual(rolls(action), []);
+    assert.equal(prompts(action)[0].ability, 'str');
+  }
+  assert.deepEqual(prompts(actions('tome-graft')[0])[0].saveDC, { type: 'custom', bonus: '10' });
+  const [ward, undead] = actions('2e-priest-492');
+  assert.deepEqual(prompts(ward), []);
+  assert.equal(prompts(undead)[0].ability, 'wis');
+  assert.deepEqual([rolls(actions('2e-wizard-192')[0]), prompts(actions('2e-wizard-192')[0])], [[], []]);
+  assert.equal(inventory.filter(row => row.rollReview.reviewed).length, 594);
+  const bySourceId = new Map(snapshot.records.map(record => [record.id, record]));
   for (const row of inventory) {
     const item = keyed.get(row.key);
-    const raw = snapshot.records.find(record => record.id === row.key);
+    const raw = bySourceId.get(row.key);
     assert.equal(item.flags[moduleId].canonicalRules, raw.rules);
     const native = actions(row.key);
     assert.equal(native.filter(action => action.default).length, 1);

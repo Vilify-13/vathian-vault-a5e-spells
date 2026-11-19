@@ -1,12 +1,12 @@
 {
   "archive": "vathian-vault-a5e-spells-0.2.0.zip",
-  "sha256": "bfc8f362913a5143c3cc1a7b7b76538e4be09c8033e1449d88ec30fce9f4a514",
+  "sha256": "8c9f8e150ae017a719641537342e2b6066b3741ee1280a4c21630f55e6946ca3",
   "moduleFileHashes": {
     "module.json": "aa415bc7018eb40df7536fcc732e6b62c71de700d97c10f3d7699c8e60e605cc",
     "packs/spells/000004.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "packs/spells/000005.ldb": "b3e452b5f0bb43d1f5d7afbaa81383f1f12e086ffddaabbfa79086291477b5a9",
+    "packs/spells/000005.ldb": "76368001e42962fee7b7111015ef9eb1f33e3e95bc506d5922b4709dfb52192d",
     "packs/spells/CURRENT": "1005a525006f148c86efcbfb36c6eac091b311532448010f70f7de9a68007167",
-    "packs/spells/MANIFEST-000002": "90e553691c0d9b4dfd7156a09551625f6c72bb6b30d4a8d5b01e66be12ca1d5d"
+    "packs/spells/MANIFEST-000002": "214b76e0e2ca858c487dda975262c6b675d47f3425ad111bd82a3b556304e757"
   },
   "roundTripCount": 819,
   "toolingEvidence": "Official Foundry CLI 3.0.5, ClassicLevel 3.0.0; commands/package.mjs sha256:4fc0f5dd75eaefd30c941b114e8783213911e214ca36e9caa8d11d8a4da8352c",
