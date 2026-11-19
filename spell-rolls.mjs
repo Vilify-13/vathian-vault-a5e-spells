@@ -24,6 +24,10 @@ export function validateReview(recordIds) {
 }
 
 export function reviewFor(raw) {
+  if (raw.level === null && raw.original?.level === 'Q') return {
+    reviewed: true, category: 'quest-excluded', saveEvidence: 'user-quest-exclusion',
+    rationale: 'Quest spell: resolve its special mechanics manually according to the full spell rules. Automated rolls and saving throws are intentionally excluded.'
+  };
   const entry = rollReview[raw.id];
   const dynamicSave = getDynamicSave(raw.id);
   if (dynamicSave) return { reviewed: true, category: 'rolled-dc-save', dynamicSave, saveEvidence: 'explicit-rolled-dc',
@@ -68,8 +72,9 @@ export function saveAuditFor(raw, decision) {
     saves.push({ action: action ?? 'Cast', dc: fixed ? 'fixed' : useCasterDC ? 'caster' : 'context', value: fixed ?? null, ability });
   }
   const sourceLimits = [];
-  if (!saves.length && headerAbility) sourceLimits.push(/investigation/i.test(header) ? 'ability-check-in-header' : 'ability-in-header-without-confirmed-native-save');
-  if (['tome-pyroclasticsurge', '2e-priest-810'].includes(raw.id)) sourceLimits.push('save-ability-unspecified');
+  if (decision.category === 'quest-excluded') sourceLimits.push('quest-excluded-by-user');
+  else if (!saves.length && headerAbility) sourceLimits.push(/investigation/i.test(header) ? 'ability-check-in-header' : 'ability-in-header-without-confirmed-native-save');
+  if (decision.category !== 'quest-excluded' && ['tome-pyroclasticsurge', '2e-priest-810'].includes(raw.id)) sourceLimits.push('save-ability-unspecified');
   return { header, headerAbility, correctionEvidence: decision.saveEvidence ?? null,
     baselineManualOnly: baseline.category.endsWith('-manual'),
     baselineSecondaryOnly: Boolean(!baseline.rolls?.length && !baseline.savingThrow && !baseline.attack && baseline.followups?.length),

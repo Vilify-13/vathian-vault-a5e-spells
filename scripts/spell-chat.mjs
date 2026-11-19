@@ -11,7 +11,7 @@ export function recordSpellCard(message, userId, game, resolveItem) {
   const item = resolveItem(system.itemId);
   const source = item?.flags?.[moduleId];
   const action = item?.actions?.get(system.actionId);
-  if (item?.type !== 'spell' || !source?.chatSaves || !action || item.actor?.uuid !== system.actorId) return;
+  if (item?.type !== 'spell' || !source?.chatSaves || source.quest || !action || item.actor?.uuid !== system.actorId) return;
   const dynamic = action.default && getDynamicSave(source.sourceKey) ? source.sourceKey : null;
   const contextRules = getContextSaves(source.sourceKey);
   const contextIndex = contextRules.findIndex(context => context.action ? action.name === context.action : action.default);
@@ -87,7 +87,7 @@ function checkbox(parent, text) {
 function addFollowupControls(article, message, api) {
   if (article.dataset.vathianFollowups) return;
   const item = message.item;
-  if (item?.type !== 'spell' || !item.flags?.[moduleId]?.chatSaves || !item.actor?.isOwner
+  if (item?.type !== 'spell' || !item.flags?.[moduleId]?.chatSaves || item.flags[moduleId].quest || !item.actor?.isOwner
     || item.actor.uuid !== message.system.actorId || item.uuid !== message.system.itemId) return;
   const followups = [...item.actions].filter(([id, action]) => idPattern.test(id) && !action.default);
   if (!followups.length) return;

@@ -54,7 +54,15 @@ async function pack(source, localDriver, output) {
   assert.deepEqual(Object.fromEntries(['wizard', 'sorcerer', 'cleric', 'herald'].map(id => [
     id, expectedItems.filter(item => item.system.classes.includes(id)).length
   ])), { wizard: 519, sorcerer: 75, cleric: 361, herald: 333 });
-  assert.equal(expectedItems.filter(item => item.system.tags.includes('quest')).length, 28);
+  const quests = expectedItems.filter(item => item.system.tags.includes('quest'));
+  assert.equal(quests.length, 28);
+  for (const item of quests) {
+    const actions = Object.values(item.system.actions);
+    assert.equal(item.flags[moduleId].chatSaves, false, item.name);
+    assert.equal(item.flags[moduleId].rollReview.category, 'quest-excluded', item.name);
+    assert.equal(actions.length, 1, item.name);
+    assert.deepEqual([actions[0].rolls, actions[0].prompts, actions[0].consumers], [{}, {}, {}], item.name);
+  }
   assert.equal(expectedItems.filter(item => item.system.level === 9).length, 52);
   assert.equal(expectedItems.filter(item => item.flags[moduleId].deityAssociations.length).length, 318);
   const manifest = JSON.parse(await readFile(new URL('./module.json', import.meta.url), 'utf8'));

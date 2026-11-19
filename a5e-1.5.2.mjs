@@ -232,7 +232,7 @@ export function makeAdapter(reference) {
     mapped.review.chatSave = saveAuditFor(raw, decision);
     mapped.review.freshReview = getFreshReview(raw.id) ?? null;
     mapped.sourceFlags = { ...mapped.sourceFlags, canonicalRules: raw.rules, canonicalSummary: raw.summary,
-      chatSaves: true, manualMechanics: mapped.review.nativeTreatment,
+      chatSaves: mapped.sourceFlags.quest !== true, manualMechanics: mapped.review.nativeTreatment,
       rollReview: { reviewed: decision.reviewed, category: decision.category } };
     return mapped;
   };

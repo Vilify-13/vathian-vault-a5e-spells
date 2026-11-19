@@ -1,14 +1,14 @@
 {
   "archive": "vathian-vault-a5e-spells-0.2.1.zip",
-  "sha256": "6b78b45e475d33d6e31b246cd077d5f13a95159b21d7500a84202cf441d03627",
+  "sha256": "968bed294234e1ff01700e2a7bc4905c3b5099ec6a7c586922762f1f56369a18",
   "moduleFileHashes": {
     "module.json": "1aa85f6afff4cc5f3ed218171717de9c0f5921d5e725548b3c1e40f16da941c1",
-    "scripts/spell-chat.mjs": "ef775a7dd48b46f14ff719b751c7646e57d4ad47d62b3f74d3ff0ad96620c360",
+    "scripts/spell-chat.mjs": "06a2712a01c94e927aa2b7fef686381fa1b98fe3c75b684ffef8f10a4ca7c39f",
     "scripts/save-rules.mjs": "cbcc9e9ae52de5c388e2b1c281feac12ef9ac6f33b2d45a9d41cc594f427f4e6",
     "packs/spells/000004.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "packs/spells/000005.ldb": "02870aa5b16e2485938ef3ad99fa7fb14c888ff0f177f4c64f637c26f1cdf58e",
+    "packs/spells/000005.ldb": "ba3bd00d786fc0e5a10125cf5242c6bbe91516c2ccc2d685507d0b9382655a87",
     "packs/spells/CURRENT": "1005a525006f148c86efcbfb36c6eac091b311532448010f70f7de9a68007167",
-    "packs/spells/MANIFEST-000002": "c6f9a06d44c97363f3cb670ad43f0eebe4648202b6f209459e12b8878f985e70"
+    "packs/spells/MANIFEST-000002": "4114b76f9b1201902d9820abf80c56fa5a828d203cff6c496e78b05798dc4ecf"
   },
   "roundTripCount": 819,
   "toolingEvidence": "Official Foundry CLI 3.0.5, ClassicLevel 3.0.0; commands/package.mjs sha256:4fc0f5dd75eaefd30c941b114e8783213911e214ca36e9caa8d11d8a4da8352c",
@@ -182,7 +182,8 @@
     "individuallyReviewed": 819,
     "pending": 0,
     "categories": {
-      "no-damage-no-save": 406,
+      "quest-excluded": 28,
+      "no-damage-no-save": 390,
       "cast-damage-and-save": 37,
       "conditional-damage": 47,
       "save-only-followup": 106,
@@ -190,43 +191,42 @@
       "multi-mode": 35,
       "attack": 34,
       "rolled-dc-save": 3,
-      "contextual-dc-save": 26,
+      "contextual-dc-save": 17,
       "variable-damage": 14,
-      "conditional-damage-manual": 5,
+      "conditional-damage-manual": 4,
       "attack-manual": 3,
       "variable-damage-manual": 2,
       "cast-damage": 2,
       "multi-mode-manual": 1,
-      "save-manual": 2,
-      "summon-roll": 1
+      "save-manual": 1
     },
     "withDefaultDamage": 39,
-    "withAnyDamage": 145,
+    "withAnyDamage": 143,
     "withNativeSave": 328,
     "withNativeAttack": 49,
-    "withFollowupAction": 304,
+    "withFollowupAction": 295,
     "withCantripScaling": 3
   },
   "chatSaveCoverage": {
     "withCompactCastDescription": 819,
-    "withInteractiveSave": 350,
-    "withSaveOnCast": 144,
+    "withInteractiveSave": 341,
+    "withSaveOnCast": 143,
     "byDC": {
       "caster": 317,
       "fixed": 20,
       "rolled": 3,
-      "context": 19
+      "context": 10
     },
-    "correctiveDecisions": 147,
-    "baselineDecisionsRetained": 672,
+    "correctiveDecisions": 165,
+    "baselineDecisionsRetained": 654,
     "priorManualOnly": 62,
-    "priorManualOnlyNowInteractive": 39,
-    "priorManualOnlyChanged": 49,
+    "priorManualOnlyNowInteractive": 34,
+    "priorManualOnlyChanged": 51,
     "priorSecondaryOnly": 213,
     "priorSecondaryOnlyChanged": 45,
-    "manualOnly": 13,
-    "saveAbilityUnspecified": 2,
-    "sourceHeaderWithoutMappedSave": 3
+    "manualOnly": 11,
+    "saveAbilityUnspecified": 1,
+    "sourceHeaderWithoutMappedSave": 2
   },
   "freshReviewCoverage": {
     "reviewed": 819,

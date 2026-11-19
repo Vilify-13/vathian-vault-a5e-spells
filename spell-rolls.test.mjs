@@ -152,6 +152,14 @@ test('official-source-bound roll build preserves the corpus and gates later mech
     assert.deepEqual(cast.descriptionOutputs, ['action']);
     assert.doesNotMatch(cast.description, /resolve outcomes and any mechanics omitted/);
     assert.ok(cast.description.length > 10 && cast.description.length < 1400, row.key);
+    if (row.quest) {
+      assert.equal(row.rollReview.category, 'quest-excluded', row.key);
+      assert.equal(item.flags[moduleId].chatSaves, false, row.key);
+      assert.equal(native.length, 1, row.key);
+      assert.deepEqual([rolls(cast), prompts(cast)], [[], []], row.key);
+      assert.deepEqual(row.chatSave.saves, [], row.key);
+      assert.deepEqual(row.chatSave.sourceLimits, ['quest-excluded-by-user'], row.key);
+    } else assert.equal(item.flags[moduleId].chatSaves, true, row.key);
     if (row.rollReview.category.endsWith('-manual') || row.rollReview.category === 'no-damage-no-save') {
       assert.ok(native.every(action => !rolls(action).length && !prompts(action).length), row.key);
     }
