@@ -100,19 +100,66 @@ test('official-source-bound roll build preserves the corpus and gates later mech
   assert.equal(rolls(snowOrdinary)[0].scaling.mode, 'cantrip');
   assert.equal(rolls(snowElemental)[0].formula, '1d12');
   const [plumeCast, airPlume] = actions('tome-planarplume');
-  assert.deepEqual([rolls(plumeCast), prompts(plumeCast)], [[], []]);
+  assert.deepEqual(rolls(plumeCast).map(roll => [roll.type, roll.formula]), [['generic', '1d12']]);
+  assert.deepEqual(prompts(plumeCast), []);
   assert.deepEqual([rolls(airPlume)[0].formula, prompts(airPlume)[0].ability], ['8d8', 'str']);
   assert.deepEqual(rolls(actions('2e-wizard-139')[0]), []);
+  for (const id of ['2e-wizard-983', '2e-wizard-989', '2e-wizard-958']) {
+    const [cast] = actions(id);
+    assert.deepEqual(rolls(cast).map(roll => [roll.type, roll.default, roll.formula, roll.die.number, roll.die.denom]),
+      [['generic', true, '@prof + @spell.mod', 1, 20]]);
+    assert.deepEqual(prompts(cast), []);
+  }
+  assert.deepEqual(prompts(actions('tome-castigate')[0]).map(prompt => [prompt.ability, prompt.saveDC.type]), [['cha', 'spellcasting']]);
+  const [missileCast, extraMissile, missileBurst] = actions('2e-wizard-357');
+  assert.deepEqual(rolls(missileCast).map(roll => [roll.type, roll.formula, roll.damageType]), [['damage', '2d4', 'force']]);
+  assert.deepEqual(prompts(missileCast), []);
+  assert.equal(rolls(extraMissile)[0].formula, '2d4');
+  assert.equal(prompts(missileBurst)[0].ability, 'con');
+  const [ripCast] = actions('tome-rip');
+  assert.equal(rolls(ripCast)[0].formula, '4d6');
+  assert.equal(prompts(ripCast)[0].ability, 'str');
+  const [produceIce, slip, swim] = actions('2e-priest-874');
+  assert.equal(rolls(produceIce)[0].formula, '2d4');
+  assert.equal(prompts(produceIce)[0].ability, 'con');
+  assert.deepEqual([slip, swim].map(action => prompts(action)[0].ability), ['dex', 'dex']);
+  const [thunderCast, thunderEntry] = actions('tome-lightningstorm');
+  assert.deepEqual(rolls(thunderCast).map(roll => roll.formula), ['8d6', '5d6']);
+  assert.deepEqual(prompts(thunderEntry).map(prompt => prompt.ability), ['con']);
+  assert.deepEqual(prompts(actions('tome-graymantle')[0]).map(prompt => prompt.ability), ['con']);
+  const [drownCast, drownAfter] = actions('tome-drown');
+  assert.deepEqual(prompts(drownCast), []);
+  assert.deepEqual(prompts(drownAfter).map(prompt => prompt.ability), ['con']);
+  const [bucklerCast, bucklerReaction] = actions('tome-forcebuckler');
+  assert.deepEqual(prompts(bucklerCast), []);
+  assert.match(bucklerReaction.description, /attacking spellcaster/);
+  const [hugCast, squeeze] = actions('tome-bearhug');
+  assert.deepEqual(rolls(hugCast), []);
+  assert.deepEqual(rolls(squeeze).map(roll => [roll.die.denom, roll.formula, roll.scaling.mode]),
+    [[4, '@spell.mod + @str.mod', 'cantrip']]);
   const bySourceId = new Map(snapshot.records.map(record => [record.id, record]));
   for (const row of inventory) {
     const item = keyed.get(row.key);
     const raw = bySourceId.get(row.key);
     assert.equal(item.flags[moduleId].canonicalRules, raw.rules);
     assert.equal(row.rulesSha256, sha256(raw.rules));
+    assert.equal(row.freshReview.rulesSha256, row.rulesSha256, row.key);
     const native = actions(row.key);
     assert.equal(row.rollReview.reviewed, true, row.key);
     assert.ok(row.rollReview.rationale.trim(), row.key);
     assert.equal(native.filter(action => action.default).length, 1);
+    const cast = native.find(action => action.default);
+    assert.deepEqual(cast.descriptionOutputs, ['action']);
+    assert.doesNotMatch(cast.description, /resolve outcomes and any mechanics omitted/);
+    assert.ok(cast.description.length > 10 && cast.description.length < 1400, row.key);
+    if (row.quest) {
+      assert.equal(row.rollReview.category, 'quest-excluded', row.key);
+      assert.equal(item.flags[moduleId].chatSaves, false, row.key);
+      assert.equal(native.length, 1, row.key);
+      assert.deepEqual([rolls(cast), prompts(cast)], [[], []], row.key);
+      assert.deepEqual(row.chatSave.saves, [], row.key);
+      assert.deepEqual(row.chatSave.sourceLimits, ['quest-excluded-by-user'], row.key);
+    } else assert.equal(item.flags[moduleId].chatSaves, true, row.key);
     if (row.rollReview.category.endsWith('-manual') || row.rollReview.category === 'no-damage-no-save') {
       assert.ok(native.every(action => !rolls(action).length && !prompts(action).length), row.key);
     }
@@ -128,7 +175,7 @@ test('official-source-bound roll build preserves the corpus and gates later mech
       }
       for (const roll of rolls(action).filter(roll => roll.type === 'damage')) {
         assert.equal(roll.canCrit, false);
-        if (roll.formula) assert.match(roll.formula, /^(?:\d+d\d+(?: ?\+ ?\d+)?|\d+)$/);
+        if (roll.formula) assert.match(roll.formula, /^(?:\d+d\d+(?: ?\+ ?(?:\d+|@spell\.mod))?|\d+|@spell\.mod \+ @str\.mod)$/);
       }
     }
   }

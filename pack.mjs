@@ -54,13 +54,26 @@ async function pack(source, localDriver, output) {
   assert.deepEqual(Object.fromEntries(['wizard', 'sorcerer', 'cleric', 'herald'].map(id => [
     id, expectedItems.filter(item => item.system.classes.includes(id)).length
   ])), { wizard: 519, sorcerer: 75, cleric: 361, herald: 333 });
-  assert.equal(expectedItems.filter(item => item.system.tags.includes('quest')).length, 28);
+  const quests = expectedItems.filter(item => item.system.tags.includes('quest'));
+  assert.equal(quests.length, 28);
+  for (const item of quests) {
+    const actions = Object.values(item.system.actions);
+    assert.equal(item.flags[moduleId].chatSaves, false, item.name);
+    assert.equal(item.flags[moduleId].rollReview.category, 'quest-excluded', item.name);
+    assert.equal(actions.length, 1, item.name);
+    assert.deepEqual([actions[0].rolls, actions[0].prompts, actions[0].consumers], [{}, {}, {}], item.name);
+  }
   assert.equal(expectedItems.filter(item => item.system.level === 9).length, 52);
   assert.equal(expectedItems.filter(item => item.flags[moduleId].deityAssociations.length).length, 318);
   const manifest = JSON.parse(await readFile(new URL('./module.json', import.meta.url), 'utf8'));
-  if (manifest.version === '0.2.0') {
+  const runtimeFiles = manifest.esmodules?.length ? ['scripts/spell-chat.mjs', 'scripts/save-rules.mjs'] : [];
+  if (manifest.version === '0.2.1') {
+    assert.deepEqual(manifest.esmodules, [runtimeFiles[0]], 'Release must load the verified chat entry point');
+    assert.ok(manifest.download.endsWith(`/main/releases/${moduleId}-0.2.1.zip`));
     assert.equal(audit.rollCoverage?.individuallyReviewed, audit.included, 'Release requires an individual rules review for every spell');
     assert.equal(audit.rollCoverage.pending, 0);
+    assert.equal(audit.freshReviewCoverage?.reviewed, audit.included, 'Release requires a fresh rules review for every included spell');
+    assert.equal(audit.freshReviewCoverage.pending, 0);
     assert.ok(expectedItems.every(item => item.flags[moduleId].rollReview?.reviewed === true));
   }
   const driver = (await import(pathToFileURL(path.resolve(localDriver)))).default;
@@ -92,10 +105,12 @@ async function pack(source, localDriver, output) {
   await mkdir(databaseForRelease, { recursive: true });
   for (const name of dbFiles) await copyFile(path.join(database, name), path.join(databaseForRelease, name));
   await writeFile(path.join(moduleDir, 'module.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
+  if (runtimeFiles.length) await mkdir(path.join(moduleDir, 'scripts'));
+  for (const file of runtimeFiles) await copyFile(new URL(file, import.meta.url), path.join(moduleDir, file));
   const archive = path.join(root, `${moduleId}-${manifest.version}.zip`);
   run(driver.archiveExecutable, ['-a', '-cf', archive, '-C', staging, moduleId], root);
   const entries = run(driver.archiveExecutable, ['-tf', archive], root).trim().split(/\r?\n/);
-  const moduleFiles = ['module.json', ...dbFiles.map(name => `packs/spells/${name}`)];
+  const moduleFiles = ['module.json', ...runtimeFiles, ...dbFiles.map(name => `packs/spells/${name}`)];
   assert.deepEqual(entries.filter(entry => !entry.endsWith('/')).sort(), moduleFiles.map(file => `${moduleId}/${file}`).sort());
   const zipExtract = path.join(root, 'archive-verification');
   await mkdir(zipExtract);
@@ -125,7 +140,8 @@ async function pack(source, localDriver, output) {
   await writeFile(path.join(root, 'release-receipt.json'), JSON.stringify({
     archive: path.basename(archive), sha256: sha256(await readFile(archive)), moduleFileHashes, roundTripCount: audit.included,
     toolingEvidence: driver.evidence, officialEvidence: audit.officialEvidence,
-    nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage,
+    nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage, chatSaveCoverage: audit.chatSaveCoverage,
+    freshReviewCoverage: audit.freshReviewCoverage,
     canonicalRevision: audit.canonicalRevision, canonicalHashes: audit.hashes, canonicalGitBlobs: audit.gitBlobs
   }, null, 2) + '\n', { flag: 'wx' });
 }

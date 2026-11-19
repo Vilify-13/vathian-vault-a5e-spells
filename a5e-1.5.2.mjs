@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { buildWithAdapter, documentId, moduleId, sha256 } from './build.mjs';
 import { approvedEligibilitySha256, createNativeAdapter } from './canonical.mjs';
 import { classIds, mechanicalPlan } from './native-adapter.mjs';
-import { nativeRollActions, reviewFor, validateReview } from './spell-rolls.mjs';
+import { nativeRollActions, reviewFor, saveAuditFor, validateReview } from './spell-rolls.mjs';
+import { getFreshReview, verifyFreshReviews } from './fresh-spell-review.mjs';
 
 export const a5eRevision = '6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c';
 const version = '1.5.2';
@@ -20,7 +21,14 @@ const files = {
   rolls: 'src/dataModels/item/actions/ActionRollsDataModel.ts',
   prompts: 'src/dataModels/item/actions/ActionPromptsDataModel.ts',
   rollState: 'src/managers/RollStateManager.ts', rollPreparation: 'src/managers/RollPreparationManager.ts',
+  actionsManager: 'src/managers/ActionsManager.ts', modifiersManager: 'src/managers/ModifierManager.ts',
+  bonusesManager: 'src/managers/BonusesManager.ts',
   chatCreation: 'src/documents/item/item.svelte.ts', damageButtons: 'src/view/chat/components/DamageButtons.svelte',
+  itemCard: 'src/view/chat/ItemCard.svelte', itemCardData: 'src/dataModels/chat/ItemCardDataModel.ts',
+  renderChat: 'src/hooks/renderChatMessageHTML.ts', chatCreateHook: 'src/hooks/preCreateChatMessage.ts',
+  prepareSelected: 'src/utils/view/helpers/prepareSelectedTokenActors.ts',
+  promptTitle: 'src/utils/view/cards/cardPrompts/getSavingThrowPromptTitle.ts',
+  actorRolls: 'src/documents/actor/actor.svelte.ts', spellBook: 'src/dataModels/actor/SpellBook.ts',
   saveDC: 'src/utils/computeSaveDC.ts',
   migration: 'src/migration/runner/base.ts',
   rangeSummary: 'src/utils/summaries/getRangeLabels.ts', areaSummary: 'src/utils/summaries/getAreaLabel.ts',
@@ -68,8 +76,25 @@ export async function readReference(directory) {
   assert.match(sources.rolls, /const damageRollSchema/);
   assert.match(sources.prompts, /saveDC: new fields.SchemaField/);
   assert.match(sources.rollState, /getDefaultIds\('rolls'\)/);
+  assert.match(sources.actions, /if \(!prop\.formulaInvalid\) acc\.push\(prop\.id\)/);
+  assert.match(sources.actionsManager, /extends Map<string, A5EActionData>/);
+  assert.match(sources.chatCreation, /async activate\(actionId: string \| null/);
+  assert.match(sources.modifiersManager, /#getGlobalAttackBonus\(/);
+  assert.match(sources.bonusesManager, /if \(!attackTypes\?\.includes\(type\)\) return false/);
   assert.match(sources.rollPreparation, /new DamageRoll/);
   assert.match(sources.chatCreation, /rolls: rolls.map/);
+  assert.match(sources.chatCreation, /selectedPrompts: rollState\.config\.defaults\.prompts/);
+  assert.match(sources.rollState, /p\.dc = computeSaveDC/);
+  assert.match(sources.itemCardData, /prompts: new fields\.ArrayField/);
+  assert.match(sources.itemCard, /token\.rollSavingThrow\(prompt\.ability, options\)/);
+  assert.match(sources.prepareSelected, /canvas\?\.tokens\?\.controlled/);
+  assert.match(sources.promptTitle, /dc: prompt\.dc/);
+  assert.match(sources.renderChat, /mount\(Component/);
+  assert.match(sources.chatCreateHook, /message\.updateSource/);
+  assert.match(sources.actorRolls, /data\.spell = \{ mod: spellBook\.stats\.mod \}/);
+  assert.match(sources.actorRolls, /data\.prof = this\.system\.attributes\.prof/);
+  assert.match(sources.actorRolls, /async rollSavingThrow/);
+  assert.match(sources.spellBook, /const spellMod = abilities\[ability\]\.check\.mod/);
   assert.match(sources.damageButtons, /actor.applyDamage/);
   assert.match(sources.saveDC, /getSpellBookDC\(actor, item\)/);
   const getAction = key => {
@@ -77,7 +102,11 @@ export async function readReference(directory) {
     assert.equal(item.type, 'spell');
     return Object.values(item.system.actions)[0];
   };
-  assert.equal(getAction('fireball').area.shape, 'sphere');
+  const fireball = getAction('fireball');
+  assert.equal(fireball.area.shape, 'sphere');
+  assert.equal(Object.values(fireball.rolls)[0].type, 'damage');
+  assert.deepEqual(Object.values(fireball.prompts).map(({ type, ability, saveDC }) => [type, ability, saveDC]),
+    [['savingThrow', 'dex', { type: 'spellcasting', bonus: '' }]]);
   assert.equal(getAction('magicMissile').target.type, 'creature');
   assert.equal(Object.values(getAction('cureWounds').ranges)[0].range, 'touch');
   const migrationVersion = Number(/LATEST_MIGRATION_VERSION = ([\d.]+);/.exec(sources.migration)?.[1]);
@@ -120,13 +149,8 @@ function nativeAction(draft, plan, reference) {
     area.shape = targeting.kind;
     area[targeting.measure === 'edge' ? 'width' : targeting.measure] = targeting.value;
   }
-  const notes = ['Use the spell text to resolve outcomes and any mechanics omitted from this Action.',
-    draft.sourceFlags.quest ? 'Follow the Quest casting and cost instructions in the spell description.'
-      : 'Apply spell slots and any special costs manually as stated in the spell description.'];
-  if (activation.type === 'special') notes.push('Use the casting time in the spell description.');
-  if (duration.unit === 'special') notes.push('Use the duration in the spell description.');
-  return { id: actionId, name: draft.name, default: true, img: '', description: `<p>${notes.join(' ')}</p>`,
-    descriptionOutputs: ['item', 'action'], activation, duration, ranges, area, target,
+  return { id: actionId, name: draft.name, default: true, img: '', description: '',
+    descriptionOutputs: ['action'], activation, duration, ranges, area, target,
     effects: [], macro: '', consumers: {}, prompts: {}, rolls: {} };
 }
 
@@ -197,6 +221,7 @@ export function makeAdapter(reference) {
   const prepare = adapter.prepare;
   adapter.prepare = snapshot => {
     validateReview(new Set(snapshot.records.map(record => record.id)));
+    verifyFreshReviews(snapshot.records);
     return prepare(snapshot);
   };
   adapter.map = (raw, index) => {
@@ -204,8 +229,11 @@ export function makeAdapter(reference) {
     const decision = reviewFor(raw);
     mapped.review.rollReview = decision;
     mapped.review.rulesSha256 = sha256(raw.rules);
+    mapped.review.chatSave = saveAuditFor(raw, decision);
+    mapped.review.freshReview = getFreshReview(raw.id) ?? null;
     mapped.sourceFlags = { ...mapped.sourceFlags, canonicalRules: raw.rules, canonicalSummary: raw.summary,
-      manualMechanics: mapped.review.nativeTreatment, rollReview: { reviewed: decision.reviewed, category: decision.category } };
+      chatSaves: mapped.sourceFlags.quest !== true, manualMechanics: mapped.review.nativeTreatment,
+      rollReview: { reviewed: decision.reviewed, category: decision.category } };
     return mapped;
   };
   adapter.nativeValidation = { status: 'official-source-schema-checked', runtimeValidated: false,
