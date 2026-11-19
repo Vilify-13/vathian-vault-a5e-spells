@@ -1,0 +1,231 @@
+{
+  "archive": "vathian-vault-a5e-spells-0.2.1.zip",
+  "sha256": "e306df1df336d40a5859f6f07e9fa3345d07919bc2964e44014d6a94934d821c",
+  "moduleFileHashes": {
+    "module.json": "1aa85f6afff4cc5f3ed218171717de9c0f5921d5e725548b3c1e40f16da941c1",
+    "scripts/spell-chat.mjs": "ec0255f7baa8dddbe913c0e4e8bd6fede9bd6d83d07fad72efff7113fa899123",
+    "scripts/save-rules.mjs": "f0d45db11c6b3ffa567608d1114954333a338ac84c78f4b444542d1a46210f0a",
+    "packs/spells/000004.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "packs/spells/000005.ldb": "47c0dadfd26610d4eacc7e238c488680b331b1f79f9c6e7963695f9d0d8dac67",
+    "packs/spells/CURRENT": "1005a525006f148c86efcbfb36c6eac091b311532448010f70f7de9a68007167",
+    "packs/spells/MANIFEST-000002": "d1756e8c0635fca50587a3fd778cfe4fde366f5de612bbdd6240f630b548a616"
+  },
+  "roundTripCount": 819,
+  "toolingEvidence": "Official Foundry CLI 3.0.5, ClassicLevel 3.0.0; commands/package.mjs sha256:4fc0f5dd75eaefd30c941b114e8783213911e214ca36e9caa8d11d8a4da8352c",
+  "officialEvidence": {
+    "version": "1.5.2",
+    "revision": "6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c",
+    "spellModel": "src/dataModels/item/SpellDataModel.ts sha256:23f9133d6cb992b6aa720f545d81d1464eeb81ea0eca865671b6ff08bf0ce7c9",
+    "baseModel": "src/dataModels/item/base.ts sha256:16a885c0d97682d0f3381d57f1177f75dab7be32aa88e9340ab25ccb24710744",
+    "classConfig": "src/config/registerClassesConfig.ts sha256:99edfc0e3c7e1cbac99c6355cf9c87f0b3aaf8eb330ccc0da9151925a47230d6",
+    "metadata": "src/view/sheets/components/item/Metadata.svelte sha256:a47c6a8be518886dd5d9b8d3974ee5e58f6c403ad58d2f524bc62d4897660968",
+    "actions": "src/dataModels/item/actions/ActionDataModel.ts sha256:9b8819983b3b0a75c4c8d09b3febb41c250fe78a76875762b9e2e6e839a207c6"
+  },
+  "nativeValidation": {
+    "status": "official-source-schema-checked",
+    "runtimeValidated": false,
+    "a5eVersion": "1.5.2",
+    "a5eRevision": "6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c",
+    "approvedEligibilitySha256": "7f65d39a314f4f19f7d7d198e5f44d74ec9756f5ff67ef77b86a5d4f7d9ec58c",
+    "evidenceFiles": {
+      "package": {
+        "file": "package.json",
+        "sha256": "1a9c3095500b7ef2a570efd85b2aebe5cd85604bf7c42c998cee1bae9fb07927"
+      },
+      "system": {
+        "file": "public/system.json",
+        "sha256": "2d48a052b2e78d328f9184e613b1aadce53dc1de5ab6cefa0bedab78cc2632fa"
+      },
+      "spellModel": {
+        "file": "src/dataModels/item/SpellDataModel.ts",
+        "sha256": "23f9133d6cb992b6aa720f545d81d1464eeb81ea0eca865671b6ff08bf0ce7c9"
+      },
+      "baseModel": {
+        "file": "src/dataModels/item/base.ts",
+        "sha256": "16a885c0d97682d0f3381d57f1177f75dab7be32aa88e9340ab25ccb24710744"
+      },
+      "itemFields": {
+        "file": "src/dataModels/item/common.ts",
+        "sha256": "0ec47277a926afc5560b6e21443dee11e4ec7c32c2f895e6275cecae014d3e5f"
+      },
+      "common": {
+        "file": "src/dataModels/common.ts",
+        "sha256": "e39599606d7322c5b1bd2b62a2f8e8c44bd5639be14b6252a978a9cf3426b065"
+      },
+      "classConfig": {
+        "file": "src/config/registerClassesConfig.ts",
+        "sha256": "99edfc0e3c7e1cbac99c6355cf9c87f0b3aaf8eb330ccc0da9151925a47230d6"
+      },
+      "config": {
+        "file": "src/config.ts",
+        "sha256": "85d2eae8f909c2129a85c042209106a89ff24be92b17a24d4539cb87c5f69dd3"
+      },
+      "metadata": {
+        "file": "src/view/sheets/components/item/Metadata.svelte",
+        "sha256": "a47c6a8be518886dd5d9b8d3974ee5e58f6c403ad58d2f524bc62d4897660968"
+      },
+      "actions": {
+        "file": "src/dataModels/item/actions/ActionDataModel.ts",
+        "sha256": "9b8819983b3b0a75c4c8d09b3febb41c250fe78a76875762b9e2e6e839a207c6"
+      },
+      "rolls": {
+        "file": "src/dataModels/item/actions/ActionRollsDataModel.ts",
+        "sha256": "146d364cf8b991a38c3beee7fa1768e4c56c9e23cd7191f5713a49e017df8fcd"
+      },
+      "prompts": {
+        "file": "src/dataModels/item/actions/ActionPromptsDataModel.ts",
+        "sha256": "172920db1756561f0b8bf8e99b669d01ce55cad0ed51ac8bb02d85f773e5fc49"
+      },
+      "rollState": {
+        "file": "src/managers/RollStateManager.ts",
+        "sha256": "6b11fd3803fb5b39b3028cd45e46235360bd749086c15976a60ea5a65fde3892"
+      },
+      "rollPreparation": {
+        "file": "src/managers/RollPreparationManager.ts",
+        "sha256": "1e6c53dbca18bdde11a3bd28e07caa3a5401779d3908fc4c93928808233d8951"
+      },
+      "chatCreation": {
+        "file": "src/documents/item/item.svelte.ts",
+        "sha256": "d53a0ede110223c3b2baabf8948126656a6ac536b2514937a17139396a705c09"
+      },
+      "damageButtons": {
+        "file": "src/view/chat/components/DamageButtons.svelte",
+        "sha256": "4053ed0d333e751b8cd332d119aeb55c943c064e49d1dcff6b8931a462e3428d"
+      },
+      "itemCard": {
+        "file": "src/view/chat/ItemCard.svelte",
+        "sha256": "60078b68385629b084077e9421af7dcfc1ee97fd1c56f0d6118b0de1173dfe36"
+      },
+      "itemCardData": {
+        "file": "src/dataModels/chat/ItemCardDataModel.ts",
+        "sha256": "b7effd8f3cdce17e2017084671ec89c5542bc50aa43707d8fd5d828d487d12d5"
+      },
+      "renderChat": {
+        "file": "src/hooks/renderChatMessageHTML.ts",
+        "sha256": "b489e3b3ea2dbfda60d38dc546da51cfaf35d4ef6654a2f50f5f73f2d237bc58"
+      },
+      "chatCreateHook": {
+        "file": "src/hooks/preCreateChatMessage.ts",
+        "sha256": "e91898192419ad1cd4cfe73c46c6ea2299d5f383bc464321b3233cf7937b5c2b"
+      },
+      "prepareSelected": {
+        "file": "src/utils/view/helpers/prepareSelectedTokenActors.ts",
+        "sha256": "13dc58625fd2bbc6999121328290cbd98ae6d3d6d41acdb5ae71b78fc8b56b81"
+      },
+      "promptTitle": {
+        "file": "src/utils/view/cards/cardPrompts/getSavingThrowPromptTitle.ts",
+        "sha256": "ef134570f848a9ed70b166ccbf5ad614fa9e5ff2c4154486247b0772515156a6"
+      },
+      "actorRolls": {
+        "file": "src/documents/actor/actor.svelte.ts",
+        "sha256": "b513b8a9aad86bb1cc834e1b36192a996525d7063a6da2c14f0d8bbbc9ae5c38"
+      },
+      "spellBook": {
+        "file": "src/dataModels/actor/SpellBook.ts",
+        "sha256": "e8d1b897a86cc9d092c0bfac68bd2160202a44ddbd2591531fb560af7da822e9"
+      },
+      "saveDC": {
+        "file": "src/utils/computeSaveDC.ts",
+        "sha256": "fb0ecdaa95f0f21cf19c98b6439b2a13cc1a391488dc0fbfec395473f64f499e"
+      },
+      "migration": {
+        "file": "src/migration/runner/base.ts",
+        "sha256": "02996390c63d8f4932b93f9c3b597e481ab7671229772514daf5ce6e9395150b"
+      },
+      "rangeSummary": {
+        "file": "src/utils/summaries/getRangeLabels.ts",
+        "sha256": "6164516cb85839ea04d20423542991cb41589678d49e03ee821010d3df3fcbf2"
+      },
+      "areaSummary": {
+        "file": "src/utils/summaries/getAreaLabel.ts",
+        "sha256": "91446e30da9fb5da503591187c7eafd642dbc35283f44d7ff4a6fb0d4203d3ec"
+      },
+      "fireball": {
+        "file": "packs/spells/fireball.json",
+        "sha256": "65d619d23fe1fa1cb16ff962a0811f30da82b66e38fb070f0cdceb91eee1c808"
+      },
+      "magicMissile": {
+        "file": "packs/spells/magic-missile.json",
+        "sha256": "494c844eba002d87b6c6b5e388bde33146ae24d3d8349f36a476ee932f26a758"
+      },
+      "cureWounds": {
+        "file": "packs/spells/cure-wounds.json",
+        "sha256": "826b6777ac963561018b872d58a1203cb7ffd847c26fba5b5e0ab86cadf7ba78"
+      },
+      "packBuild": {
+        "file": "build/buildCompendia.mjs",
+        "sha256": "21bef8c28a1d7817487a1f1b20d68e9b2681365249bd22a863c413eae5142cdd"
+      },
+      "pack": {
+        "file": "build/lib/Pack.mjs",
+        "sha256": "20c7435b3aa65068b4832554879f7ac849d1d712a93ee3b7522ff742376bbc6b"
+      },
+      "levelDB": {
+        "file": "build/lib/LevelDB.mjs",
+        "sha256": "c9e984d623eae3bb13856c5af53949459ae5f9cd2ead628efd1d4f75a7ff1099"
+      }
+    }
+  },
+  "rollCoverage": {
+    "individuallyReviewed": 819,
+    "pending": 0,
+    "categories": {
+      "no-damage-no-save": 406,
+      "cast-damage-and-save": 33,
+      "conditional-damage": 44,
+      "save-only-followup": 111,
+      "save-only": 100,
+      "multi-mode": 37,
+      "attack": 33,
+      "rolled-dc-save": 3,
+      "attack-manual": 6,
+      "contextual-dc-save": 14,
+      "cast-damage": 3,
+      "variable-damage-manual": 3,
+      "variable-damage": 15,
+      "conditional-damage-manual": 7,
+      "multi-mode-manual": 2,
+      "save-manual": 2
+    },
+    "withDefaultDamage": 36,
+    "withAnyDamage": 137,
+    "withNativeSave": 326,
+    "withNativeAttack": 46,
+    "withFollowupAction": 298,
+    "withCantripScaling": 3
+  },
+  "chatSaveCoverage": {
+    "withCompactCastDescription": 819,
+    "withInteractiveSave": 343,
+    "withSaveOnCast": 138,
+    "byDC": {
+      "caster": 314,
+      "fixed": 20,
+      "rolled": 3,
+      "context": 12
+    },
+    "correctiveDecisions": 106,
+    "baselineDecisionsRetained": 713,
+    "priorManualOnly": 62,
+    "priorManualOnlyNowInteractive": 39,
+    "priorManualOnlyChanged": 42,
+    "priorSecondaryOnly": 213,
+    "priorSecondaryOnlyChanged": 23,
+    "manualOnly": 20,
+    "saveAbilityUnspecified": 2,
+    "sourceHeaderWithoutMappedSave": 8
+  },
+  "canonicalRevision": null,
+  "canonicalHashes": {
+    "manifest.json": "356d572db6ee96ec9e9e0f74b19164bb2c894316d12ddfe0ffcececc6696f037",
+    "spells-0.bin": "ee4c37535f27a176b68c7c5f18146a1e8a9779783d836bdfc5f98d5cf32e7cde",
+    "spells-1.bin": "8cc2623a4f8222ec478aa04d7ba149db32e230be3d2bdedb6c8ecdeb8baa21af",
+    "spells-2.bin": "a90315af2fcbb64e2b1c903b5d7d2a813fd5e932146f57b5e247285a9cab11ae"
+  },
+  "canonicalGitBlobs": {
+    "manifest.json": "c6a5eab255b18f21acb33cb6db67bf6bbb7230dd",
+    "spells-0.bin": "8e5dd62824dee06f3968ad24db40ee1e89646372",
+    "spells-1.bin": "71dc61d32b9712343e7f1a1e6e30dca9547b4197",
+    "spells-2.bin": "0d640a6fafb588a735356bcddba5da275dd48cfc"
+  }
+}

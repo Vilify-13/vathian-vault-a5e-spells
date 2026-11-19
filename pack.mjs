@@ -58,7 +58,10 @@ async function pack(source, localDriver, output) {
   assert.equal(expectedItems.filter(item => item.system.level === 9).length, 52);
   assert.equal(expectedItems.filter(item => item.flags[moduleId].deityAssociations.length).length, 318);
   const manifest = JSON.parse(await readFile(new URL('./module.json', import.meta.url), 'utf8'));
-  if (manifest.version === '0.2.0') {
+  const runtimeFiles = manifest.esmodules?.length ? ['scripts/spell-chat.mjs', 'scripts/save-rules.mjs'] : [];
+  if (manifest.version === '0.2.1') {
+    assert.deepEqual(manifest.esmodules, [runtimeFiles[0]], 'Release must load the verified chat entry point');
+    assert.ok(manifest.download.endsWith(`/main/releases/${moduleId}-0.2.1.zip`));
     assert.equal(audit.rollCoverage?.individuallyReviewed, audit.included, 'Release requires an individual rules review for every spell');
     assert.equal(audit.rollCoverage.pending, 0);
     assert.ok(expectedItems.every(item => item.flags[moduleId].rollReview?.reviewed === true));
@@ -92,10 +95,12 @@ async function pack(source, localDriver, output) {
   await mkdir(databaseForRelease, { recursive: true });
   for (const name of dbFiles) await copyFile(path.join(database, name), path.join(databaseForRelease, name));
   await writeFile(path.join(moduleDir, 'module.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
+  if (runtimeFiles.length) await mkdir(path.join(moduleDir, 'scripts'));
+  for (const file of runtimeFiles) await copyFile(new URL(file, import.meta.url), path.join(moduleDir, file));
   const archive = path.join(root, `${moduleId}-${manifest.version}.zip`);
   run(driver.archiveExecutable, ['-a', '-cf', archive, '-C', staging, moduleId], root);
   const entries = run(driver.archiveExecutable, ['-tf', archive], root).trim().split(/\r?\n/);
-  const moduleFiles = ['module.json', ...dbFiles.map(name => `packs/spells/${name}`)];
+  const moduleFiles = ['module.json', ...runtimeFiles, ...dbFiles.map(name => `packs/spells/${name}`)];
   assert.deepEqual(entries.filter(entry => !entry.endsWith('/')).sort(), moduleFiles.map(file => `${moduleId}/${file}`).sort());
   const zipExtract = path.join(root, 'archive-verification');
   await mkdir(zipExtract);
@@ -125,7 +130,7 @@ async function pack(source, localDriver, output) {
   await writeFile(path.join(root, 'release-receipt.json'), JSON.stringify({
     archive: path.basename(archive), sha256: sha256(await readFile(archive)), moduleFileHashes, roundTripCount: audit.included,
     toolingEvidence: driver.evidence, officialEvidence: audit.officialEvidence,
-    nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage,
+    nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage, chatSaveCoverage: audit.chatSaveCoverage,
     canonicalRevision: audit.canonicalRevision, canonicalHashes: audit.hashes, canonicalGitBlobs: audit.gitBlobs
   }, null, 2) + '\n', { flag: 'wx' });
 }

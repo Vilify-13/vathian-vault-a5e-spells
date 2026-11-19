@@ -130,6 +130,25 @@ export async function buildWithAdapter(input, adapter, output) {
     withCantripScaling: count(item => spellActions(item).some(action => Object.values(action.rolls ?? {})
       .some(roll => roll.scaling?.mode === 'cantrip')))
   } : null;
+  const chatRows = inventory.filter(row => row.chatSave);
+  const chatSaveCoverage = chatRows.length ? {
+    withCompactCastDescription: count(item => spellActions(item).some(action => action.default && action.descriptionOutputs?.includes('action')
+      && !action.descriptionOutputs.includes('item') && action.description)),
+    withInteractiveSave: chatRows.filter(row => row.chatSave.saves.length).length,
+    withSaveOnCast: chatRows.filter(row => row.chatSave.saves.some(save => save.action === 'Cast')).length,
+    byDC: Object.fromEntries(['caster', 'fixed', 'rolled', 'context'].map(type => [type,
+      chatRows.filter(row => row.chatSave.saves.some(save => save.dc === type)).length])),
+    correctiveDecisions: chatRows.filter(row => row.chatSave.correctionEvidence).length,
+    baselineDecisionsRetained: chatRows.filter(row => !row.chatSave.correctionEvidence).length,
+    priorManualOnly: chatRows.filter(row => row.chatSave.baselineManualOnly).length,
+    priorManualOnlyNowInteractive: chatRows.filter(row => row.chatSave.baselineManualOnly && row.chatSave.saves.length).length,
+    priorManualOnlyChanged: chatRows.filter(row => row.chatSave.baselineManualOnly && row.chatSave.correctionEvidence).length,
+    priorSecondaryOnly: chatRows.filter(row => row.chatSave.baselineSecondaryOnly).length,
+    priorSecondaryOnlyChanged: chatRows.filter(row => row.chatSave.baselineSecondaryOnly && row.chatSave.correctionEvidence).length,
+    manualOnly: chatRows.filter(row => row.rollReview.category.endsWith('-manual')).length,
+    saveAbilityUnspecified: chatRows.filter(row => row.chatSave.sourceLimits.includes('save-ability-unspecified')).length,
+    sourceHeaderWithoutMappedSave: chatRows.filter(row => row.chatSave.sourceLimits.includes('ability-in-header-without-confirmed-native-save')).length
+  } : null;
   if (snapshot.format.countBasis === 'included') assert.equal(items.length, snapshot.count);
   assert.ok(items.length, 'No included spells');
   const audit = {
@@ -137,7 +156,7 @@ export async function buildWithAdapter(input, adapter, output) {
     canonicalRevision: adapter.canonicalRevision ?? null,
     hashes: snapshot.hashes, gitBlobs: snapshot.gitBlobs, officialEvidence: adapter.evidence,
     nativeValidation: adapter.nativeValidation ?? null,
-    rollCoverage,
+    rollCoverage, chatSaveCoverage,
     manifestCount: snapshot.count, countBasis: snapshot.format.countBasis, decoded: snapshot.records.length,
     included: items.length, omitted: inventory.length - items.length,
     itemHashes: Object.fromEntries(items.map(item => [item._id, sha256(json(item))])),
@@ -154,6 +173,7 @@ export async function buildWithAdapter(input, adapter, output) {
   await writeFile(path.join(target, 'audit.json'), json(audit), { flag: 'wx' });
   console.log(`Built ${items.length} Item sources. Omitted ${audit.omitted}. Blocking native mapping gaps on ${audit.withUnresolvedMechanics}.`);
   if (rollCoverage) console.log(JSON.stringify(rollCoverage, null, 2));
+  if (chatSaveCoverage) console.log(JSON.stringify(chatSaveCoverage, null, 2));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
