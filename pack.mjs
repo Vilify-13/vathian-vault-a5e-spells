@@ -74,6 +74,8 @@ async function pack(source, localDriver, output) {
     assert.equal(audit.rollCoverage.pending, 0);
     assert.equal(audit.freshReviewCoverage?.reviewed, audit.included, 'Release requires a fresh rules review for every included spell');
     assert.equal(audit.freshReviewCoverage.pending, 0);
+    assert.deepEqual(audit.actionDescriptionCoverage,
+      { verified: 1328, casts: 819, followUps: 509, spellsWithFollowUps: 295, pending: 0 });
     assert.ok(expectedItems.every(item => item.flags[moduleId].rollReview?.reviewed === true));
   }
   const driver = (await import(pathToFileURL(path.resolve(localDriver)))).default;
@@ -141,7 +143,7 @@ async function pack(source, localDriver, output) {
     archive: path.basename(archive), sha256: sha256(await readFile(archive)), moduleFileHashes, roundTripCount: audit.included,
     toolingEvidence: driver.evidence, officialEvidence: audit.officialEvidence,
     nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage, chatSaveCoverage: audit.chatSaveCoverage,
-    freshReviewCoverage: audit.freshReviewCoverage,
+    freshReviewCoverage: audit.freshReviewCoverage, actionDescriptionCoverage: audit.actionDescriptionCoverage,
     canonicalRevision: audit.canonicalRevision, canonicalHashes: audit.hashes, canonicalGitBlobs: audit.gitBlobs
   }, null, 2) + '\n', { flag: 'wx' });
 }

@@ -5,6 +5,7 @@ import { dcRollBonus, dcRollLabel, getContextSaves, getDynamicSave } from './scr
 import { applySaveCorrection, saveCorrections } from './save-review.mjs';
 import { applyFreshActionChanges, genericRolls } from './reaudit-actions.mjs';
 import { getFreshReview } from './fresh-spell-review.mjs';
+import { describeActions } from './action-descriptions.mjs';
 
 const abilities = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
 const attackTypes = new Set(['meleeSpellAttack', 'rangedSpellAttack']);
@@ -81,22 +82,6 @@ export function saveAuditFor(raw, decision) {
     rationale: decision.rationale, baselineRationale: baseline.rationale, saves, sourceLimits };
 }
 
-const escape = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
-  .replaceAll('[', '&#91;').replaceAll('@', '&#64;');
-
-function chatDescription(decision, raw) {
-  const dynamic = decision.dynamicSave;
-  if (dynamic) return `<p>${escape(dynamic.target)} The caster rolls 1d20 + their spell attack modifier to set the Dexterity save DC. Use the save section to resolve each defender.</p>`;
-  const short = raw.summary?.trim();
-  const preview = short && /[.!?]$/.test(short) ? short : '';
-  const notes = [preview && preview !== decision.rationale ? preview : '', decision.rationale].filter(Boolean);
-  if (decision.followups?.length) {
-    const list = decision.followups.slice(0, 3).map(phase => phase.name).join('; ');
-    notes.push(`Actions when applicable: ${list}${decision.followups.length > 3 ? '; more on the spell sheet' : ''}.`);
-  }
-  return notes.map(text => `<p>${escape(text)}</p>`).join('');
-}
-
 function writePhase(action, phase, key) {
   for (const [index, entry] of (phase.rolls ?? []).entries()) {
     assert.ok(formulaPattern.test(entry.formula), `Unsupported damage formula on ${key}`);
@@ -138,7 +123,6 @@ function addGeneric(action, key, label, formula, number, denom) {
 
 export function nativeRollActions(base, draft) {
   const decision = reviewFor(draft.raw);
-  base.description = chatDescription(decision, draft.raw);
   writePhase(base, decision, draft.key);
   if (decision.dynamicSave) addGeneric(base, draft.key, dcRollLabel, dcRollBonus, 1, 20);
   const actions = { [base.id]: base };
@@ -147,7 +131,6 @@ export function nativeRollActions(base, draft) {
     const id = documentId(key);
     const action = {
       ...structuredClone(base), id, name: phase.name, default: false,
-      description: `<p>${escape(phase.rationale ?? decision.rationale)}</p>`,
       activation: { type: phase.activation ?? 'special', cost: phase.activation ? 1 : 0, reactionTrigger: '' },
       duration: { unit: 'instantaneous', value: '0', concentration: false },
       ranges: {}, area: { ...base.area, shape: 'none', length: 0, height: 0, radius: 0, width: 0 },
@@ -156,5 +139,6 @@ export function nativeRollActions(base, draft) {
     writePhase(action, phase, key);
     actions[id] = action;
   }
+  for (const { id, description } of describeActions(draft.raw, Object.values(actions))) actions[id].description = description;
   return actions;
 }

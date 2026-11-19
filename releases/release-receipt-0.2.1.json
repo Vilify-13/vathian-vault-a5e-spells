@@ -1,14 +1,14 @@
 {
   "archive": "vathian-vault-a5e-spells-0.2.1.zip",
-  "sha256": "968bed294234e1ff01700e2a7bc4905c3b5099ec6a7c586922762f1f56369a18",
+  "sha256": "5d7d55ec9bcb8fe78eb2c02f722638a7f8f598c646af03b58f309e147602f2ec",
   "moduleFileHashes": {
     "module.json": "1aa85f6afff4cc5f3ed218171717de9c0f5921d5e725548b3c1e40f16da941c1",
     "scripts/spell-chat.mjs": "06a2712a01c94e927aa2b7fef686381fa1b98fe3c75b684ffef8f10a4ca7c39f",
     "scripts/save-rules.mjs": "cbcc9e9ae52de5c388e2b1c281feac12ef9ac6f33b2d45a9d41cc594f427f4e6",
     "packs/spells/000004.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "packs/spells/000005.ldb": "ba3bd00d786fc0e5a10125cf5242c6bbe91516c2ccc2d685507d0b9382655a87",
+    "packs/spells/000005.ldb": "db4f49f4f488480066db9d3fb54466d2aa82b74ac2cfbef44bbd7950e82a3968",
     "packs/spells/CURRENT": "1005a525006f148c86efcbfb36c6eac091b311532448010f70f7de9a68007167",
-    "packs/spells/MANIFEST-000002": "4114b76f9b1201902d9820abf80c56fa5a828d203cff6c496e78b05798dc4ecf"
+    "packs/spells/MANIFEST-000002": "9c9292ef2ea3eadbb8f722ccb722c9de6fd8fb7121de29e5f8e9894e07bdb9f4"
   },
   "roundTripCount": 819,
   "toolingEvidence": "Official Foundry CLI 3.0.5, ClassicLevel 3.0.0; commands/package.mjs sha256:4fc0f5dd75eaefd30c941b114e8783213911e214ca36e9caa8d11d8a4da8352c",
@@ -208,7 +208,7 @@
     "withCantripScaling": 3
   },
   "chatSaveCoverage": {
-    "withCompactCastDescription": 819,
+    "withCastDescription": 819,
     "withInteractiveSave": 341,
     "withSaveOnCast": 143,
     "byDC": {
@@ -236,6 +236,13 @@
       "retained": 762,
       "manual": 15
     }
+  },
+  "actionDescriptionCoverage": {
+    "verified": 1328,
+    "casts": 819,
+    "followUps": 509,
+    "spellsWithFollowUps": 295,
+    "pending": 0
   },
   "canonicalRevision": null,
   "canonicalHashes": {

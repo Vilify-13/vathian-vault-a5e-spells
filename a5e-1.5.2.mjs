@@ -7,6 +7,7 @@ import { buildWithAdapter, documentId, moduleId, sha256 } from './build.mjs';
 import { approvedEligibilitySha256, createNativeAdapter } from './canonical.mjs';
 import { classIds, mechanicalPlan } from './native-adapter.mjs';
 import { nativeRollActions, reviewFor, saveAuditFor, validateReview } from './spell-rolls.mjs';
+import { describeActions, validateActionDescriptionRecords } from './action-descriptions.mjs';
 import { getFreshReview, verifyFreshReviews } from './fresh-spell-review.mjs';
 
 export const a5eRevision = '6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c';
@@ -222,6 +223,7 @@ export function makeAdapter(reference) {
   adapter.prepare = snapshot => {
     validateReview(new Set(snapshot.records.map(record => record.id)));
     verifyFreshReviews(snapshot.records);
+    validateActionDescriptionRecords(snapshot.records);
     return prepare(snapshot);
   };
   adapter.map = (raw, index) => {
@@ -231,6 +233,7 @@ export function makeAdapter(reference) {
     mapped.review.rulesSha256 = sha256(raw.rules);
     mapped.review.chatSave = saveAuditFor(raw, decision);
     mapped.review.freshReview = getFreshReview(raw.id) ?? null;
+    mapped.review.actionDescriptions = describeActions(raw, Object.values(mapped.system.actions)).map(({ evidence }) => evidence);
     mapped.sourceFlags = { ...mapped.sourceFlags, canonicalRules: raw.rules, canonicalSummary: raw.summary,
       chatSaves: mapped.sourceFlags.quest !== true, manualMechanics: mapped.review.nativeTreatment,
       rollReview: { reviewed: decision.reviewed, category: decision.category } };

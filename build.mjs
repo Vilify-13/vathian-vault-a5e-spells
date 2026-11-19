@@ -133,7 +133,7 @@ export async function buildWithAdapter(input, adapter, output) {
   const chatRows = inventory.filter(row => row.chatSave);
   const freshRows = chatRows.filter(row => row.freshReview);
   const chatSaveCoverage = chatRows.length ? {
-    withCompactCastDescription: count(item => spellActions(item).some(action => action.default && action.descriptionOutputs?.includes('action')
+    withCastDescription: count(item => spellActions(item).some(action => action.default && action.descriptionOutputs?.includes('action')
       && !action.descriptionOutputs.includes('item') && action.description)),
     withInteractiveSave: chatRows.filter(row => row.chatSave.saves.length).length,
     withSaveOnCast: chatRows.filter(row => row.chatSave.saves.some(save => save.action === 'Cast')).length,
@@ -155,6 +155,16 @@ export async function buildWithAdapter(input, adapter, output) {
     decisions: Object.fromEntries(['adjusted', 'retained', 'manual'].map(status => [status,
       freshRows.filter(row => row.freshReview.status === status).length]))
   } : null;
+  const descriptionRows = inventory.filter(row => row.actionDescriptions);
+  const descriptions = descriptionRows.flatMap(row => row.actionDescriptions);
+  const verifiedDescriptions = descriptions.filter(entry => entry.status === 'verified');
+  const actionDescriptionCoverage = descriptions.length ? {
+    verified: verifiedDescriptions.length,
+    casts: verifiedDescriptions.filter(entry => entry.kind === 'cast').length,
+    followUps: verifiedDescriptions.filter(entry => entry.kind === 'follow-up').length,
+    spellsWithFollowUps: descriptionRows.filter(row => row.actionDescriptions.length > 1).length,
+    pending: items.flatMap(spellActions).length - verifiedDescriptions.length
+  } : null;
   if (snapshot.format.countBasis === 'included') assert.equal(items.length, snapshot.count);
   assert.ok(items.length, 'No included spells');
   const audit = {
@@ -162,7 +172,7 @@ export async function buildWithAdapter(input, adapter, output) {
     canonicalRevision: adapter.canonicalRevision ?? null,
     hashes: snapshot.hashes, gitBlobs: snapshot.gitBlobs, officialEvidence: adapter.evidence,
     nativeValidation: adapter.nativeValidation ?? null,
-    rollCoverage, chatSaveCoverage, freshReviewCoverage,
+    rollCoverage, chatSaveCoverage, freshReviewCoverage, actionDescriptionCoverage,
     manifestCount: snapshot.count, countBasis: snapshot.format.countBasis, decoded: snapshot.records.length,
     included: items.length, omitted: inventory.length - items.length,
     itemHashes: Object.fromEntries(items.map(item => [item._id, sha256(json(item))])),
@@ -181,6 +191,7 @@ export async function buildWithAdapter(input, adapter, output) {
   if (rollCoverage) console.log(JSON.stringify(rollCoverage, null, 2));
   if (chatSaveCoverage) console.log(JSON.stringify(chatSaveCoverage, null, 2));
   if (freshReviewCoverage) console.log(JSON.stringify(freshReviewCoverage, null, 2));
+  if (actionDescriptionCoverage) console.log(JSON.stringify(actionDescriptionCoverage, null, 2));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
