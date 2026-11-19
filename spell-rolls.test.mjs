@@ -7,6 +7,25 @@ import { convert, moduleId, readSnapshot, sha256 } from './build.mjs';
 import { canonicalCodec } from './source.mjs';
 import { validateReview } from './spell-rolls.mjs';
 import { rollReview } from './roll-review.mjs';
+import { describeActions } from './action-descriptions.mjs';
+import { ruleParagraphs } from './action-text-source.mjs';
+
+const cardText = html => html.replace(/<\/?(?:strong|em)>/g, '').replace(/<[^>]+>/g, ' ').replaceAll('&amp;', '&').replaceAll('&lt;', '<')
+  .replaceAll('&gt;', '>').replaceAll('&#91;', '[').replaceAll('&#64;', '@').replace(/\s+/g, ' ').trim();
+
+test('Action rendering takes rules and stable identity, with audit text outside the render path', () => {
+  const raw = { id: 'sample', rules: 'Choose one creature within range.\n\nIt must succeed on a Wisdom save.\nSource: Example.',
+    savingThrow: 'Wisdom (effect on success requires review)', summary: 'UNTRUSTED SUMMARY', rationale: 'PRIVATE SOURCE NOTE' };
+  const action = { id: 'samplecast', name: 'Sample', default: true, description: 'OLD DESCRIPTION', rationale: 'PRIVATE DECISION' };
+  const [cast] = describeActions(raw, [action]);
+  assert.equal(cast.description,
+    '<p>Choose one creature within range.</p><p>It must succeed on a Wisdom save.</p><p><strong>Saving Throw:</strong> Wisdom</p>');
+  assert.equal(cast.evidence.sourceSavingThrow, raw.savingThrow);
+  assert.equal(describeActions({ ...raw, rules: '<example> @UUID[test]' }, [action])[0].description,
+    '<p>&lt;example&gt; &#64;UUID&#91;test]</p><p><strong>Saving Throw:</strong> Wisdom</p>');
+  assert.throws(() => describeActions(raw, [action, { id: 'missing-review', default: false }]), /review coverage/);
+  assert.throws(() => describeActions(raw, []), /Expected one cast/);
+});
 
 test('the release review rejects a canonical record without a decision', () => {
   assert.throws(() => validateReview(new Set([...Object.keys(rollReview), 'unreviewed-record'])),
@@ -132,12 +151,39 @@ test('official-source-bound roll build preserves the corpus and gates later mech
   assert.deepEqual(prompts(drownAfter).map(prompt => prompt.ability), ['con']);
   const [bucklerCast, bucklerReaction] = actions('tome-forcebuckler');
   assert.deepEqual(prompts(bucklerCast), []);
-  assert.match(bucklerReaction.description, /attacking spellcaster/);
+  assert.match(bucklerReaction.description, /Make a Dexterity saving throw against the caster’s spell save DC/);
+  assert.match(bucklerReaction.description, /the forcebuckler dissolves, ending the spell/);
+  const [acidCast, acidOngoing] = actions('tome-acidrainstorm');
+  const acidRemoval = 'A creature who leaves the storm’s area can use an action to wipe off the acid, ending the oncoming damage.';
+  assert.equal(cardText(acidCast.description),
+    'Violet acid falls from above momentarily in the spell’s area. Each creature takes 4d6 acid damage plus 1d6 ongoing acid damage for 1 minute. '
+    + acidRemoval + ' Saving Throw: Dexterity halves');
+  assert.equal(cardText(acidOngoing.description), 'Each creature takes 1d6 ongoing acid damage for 1 minute. ' + acidRemoval);
+  assert.equal(prompts(acidCast)[0].ability, 'dex');
+  assert.deepEqual(prompts(acidOngoing), []);
+  assert.match(keyed.get('tome-acidrainstorm').system.description, /Source: The Great Net Spellbook/);
+  assert.match(actions('2e-wizard-983')[0].description, /Use that total as the save DC for this casting/);
+  assert.match(actions('2e-wizard-983')[0].description, /halves this damage, rounding down/);
+  assert.match(actions('2e-wizard-983')[0].description, /reduce the blast’s DC against that creature/);
+  assert.match(airPlume.description, /On a success, the creature takes half as much damage and is knocked back 5 feet/);
+  assert.doesNotMatch(airPlume.description, /Plane of Fire/);
+  assert.match(fixed.description, /DC 15 Constitution save using your normal score/);
+  const [coalCast, , explosion] = actions('tome-coalstone');
+  assert.match(explosion.description, /point of impact must make \./);
+  assert.match(explosion.description, /1d10 bludgeoning damage and 1d10 fire damage/);
+  assert.match(coalCast.description, /point of impact must make \./);
   const [hugCast, squeeze] = actions('tome-bearhug');
   assert.deepEqual(rolls(hugCast), []);
   assert.deepEqual(rolls(squeeze).map(roll => [roll.die.denom, roll.formula, roll.scaling.mode]),
     [[4, '@spell.mod + @str.mod', 'cantrip']]);
   const bySourceId = new Map(snapshot.records.map(record => [record.id, record]));
+  const longSpell = snapshot.records.find(record => record.name === 'Enchant an Item');
+  const longCast = actions(longSpell.id)[0];
+  const lastParagraph = ruleParagraphs(longSpell.rules).at(-1);
+  assert.ok(cardText(longCast.description).includes(lastParagraph), longSpell.id);
+  assert.ok(longCast.description.length > 1400);
+  let followUps = 0;
+  let spellsWithFollowUps = 0;
   for (const row of inventory) {
     const item = keyed.get(row.key);
     const raw = bySourceId.get(row.key);
@@ -150,8 +196,15 @@ test('official-source-bound roll build preserves the corpus and gates later mech
     assert.equal(native.filter(action => action.default).length, 1);
     const cast = native.find(action => action.default);
     assert.deepEqual(cast.descriptionOutputs, ['action']);
-    assert.doesNotMatch(cast.description, /resolve outcomes and any mechanics omitted/);
-    assert.ok(cast.description.length > 10 && cast.description.length < 1400, row.key);
+    const canonicalText = ruleParagraphs(raw.rules).filter(paragraph => !/^\|(?:\s*:?-+:?\s*\|)+$/.test(paragraph))
+      .map(paragraph => paragraph.replace(/^\|.*\|$/, table => table.replaceAll('|', ' '))
+        .replace(/\*\*([^*]+)\*\*|\*([^*]+)\*/g, (_, bold, italic) => bold ?? italic))
+      .join(' ').replace(/\s+/g, ' ').trim();
+    assert.ok(cardText(cast.description).startsWith(canonicalText), `${row.key} cast omits source text`);
+    assert.equal(row.actionDescriptions.length, native.length, row.key);
+    assert.equal(native.length, new Set(row.actionDescriptions.map(evidence => evidence.actionId)).size, row.key);
+    followUps += native.length - 1;
+    spellsWithFollowUps += Number(native.length > 1);
     if (row.quest) {
       assert.equal(row.rollReview.category, 'quest-excluded', row.key);
       assert.equal(item.flags[moduleId].chatSaves, false, row.key);
@@ -166,7 +219,19 @@ test('official-source-bound roll build preserves the corpus and gates later mech
     if (!row.rollReview.category.startsWith('cast-damage')) {
       assert.ok(rolls(native.find(action => action.default)).every(roll => roll.type !== 'damage'), row.key);
     }
-    for (const action of native) {
+    for (const [index, action] of native.entries()) {
+      const evidence = row.actionDescriptions[index];
+      assert.equal(evidence.actionId, action.id);
+      assert.equal(evidence.sourceId, row.key);
+      assert.equal(evidence.sourceRulesSha256, sha256(raw.rules));
+      assert.equal(evidence.status, 'verified');
+      assert.equal(evidence.descriptionSha256, sha256(action.description));
+      assert.match(evidence.selectionSha256, /^[a-f0-9]{64}$/);
+      assert.ok(cardText(action.description).length > 10, row.key);
+      const phaseRationale = action.default ? null : row.rollReview.followups[index - 1].rationale;
+      for (const rationale of [row.rollReview.rationale, phaseRationale].filter(Boolean)) {
+        assert.ok(!cardText(action.description).includes(rationale), `${row.key}/${action.id}`);
+      }
       assert.deepEqual([action.effects, action.consumers, action.macro], [[], {}, '']);
       for (const prompt of prompts(action)) {
         assert.match(prompt.ability, /^(str|dex|con|int|wis|cha)$/);
@@ -179,4 +244,5 @@ test('official-source-bound roll build preserves the corpus and gates later mech
       }
     }
   }
+  assert.deepEqual({ followUps, spellsWithFollowUps }, { followUps: 509, spellsWithFollowUps: 295 });
 });
