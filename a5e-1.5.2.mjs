@@ -203,6 +203,7 @@ export function makeAdapter(reference) {
     const mapped = map(raw, index);
     const decision = reviewFor(raw);
     mapped.review.rollReview = decision;
+    mapped.review.rulesSha256 = sha256(raw.rules);
     mapped.sourceFlags = { ...mapped.sourceFlags, canonicalRules: raw.rules, canonicalSummary: raw.summary,
       manualMechanics: mapped.review.nativeTreatment, rollReview: { reviewed: decision.reviewed, category: decision.category } };
     return mapped;

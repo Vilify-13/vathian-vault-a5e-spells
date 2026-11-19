@@ -3,8 +3,15 @@ import { access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { makeAdapter, readReference } from './a5e-1.5.2.mjs';
-import { convert, moduleId, readSnapshot } from './build.mjs';
+import { convert, moduleId, readSnapshot, sha256 } from './build.mjs';
 import { canonicalCodec } from './source.mjs';
+import { validateReview } from './spell-rolls.mjs';
+import { rollReview } from './roll-review.mjs';
+
+test('the release review rejects a canonical record without a decision', () => {
+  assert.throws(() => validateReview(new Set([...Object.keys(rollReview), 'unreviewed-record'])),
+    /No individual rules review for unreviewed-record/);
+});
 
 test('official-source-bound roll build preserves the corpus and gates later mechanics', async context => {
   const input = fileURLToPath(new URL('../vathian-spell-source-20261118/', import.meta.url));
@@ -70,17 +77,55 @@ test('official-source-bound roll build preserves the corpus and gates later mech
   assert.deepEqual(prompts(ward), []);
   assert.equal(prompts(undead)[0].ability, 'wis');
   assert.deepEqual([rolls(actions('2e-wizard-192')[0]), prompts(actions('2e-wizard-192')[0])], [[], []]);
-  assert.equal(inventory.filter(row => row.rollReview.reviewed).length, 594);
+  const [breathCast, breathRepeat, breathFail, breathSuccess] = actions('2e-wizard-455');
+  assert.equal(prompts(breathCast)[0].ability, 'con');
+  assert.equal(prompts(breathRepeat)[0].ability, 'con');
+  assert.deepEqual([rolls(breathCast), rolls(breathRepeat)], [[], []]);
+  assert.deepEqual([breathFail, breathSuccess].map(a => [a.default, rolls(a)[0].formula]),
+    [[false, '2d4'], [false, '1d4']]);
+  const [thornCast, optionalThorn, laterThorn] = actions('tome-thornwrack');
+  assert.deepEqual(rolls(thornCast), []);
+  assert.equal(rolls(optionalThorn)[0].formula, '4d10');
+  assert.equal(laterThorn.activation.type, 'bonusAction');
+  const [orbCast, ...orbOutcomes] = actions('2e-priest-785');
+  assert.deepEqual(rolls(orbCast).map(roll => [roll.type, roll.attackType, roll.bonus]),
+    [['attack', 'rangedSpellAttack', '3']]);
+  assert.deepEqual(orbOutcomes.map(a => [a.default, rolls(a)[0].formula, prompts(a)[0].ability]),
+    [[false, '6d6', 'con'], [false, '12d6', 'con'], [false, '3d6', 'con'], [false, '6d6', 'con']]);
+  const [boltCast, ...boltOutcomes] = actions('tome-wildbolt');
+  assert.deepEqual(rolls(boltCast).map(roll => roll.type), ['attack']);
+  assert.deepEqual(boltOutcomes.map(a => rolls(a)[0].formula), ['1d12', '2d12', '3d12', '1d4', '2d4', '3d4']);
+  const [snowCast, snowOrdinary, snowElemental] = actions('tome-snowball');
+  assert.deepEqual(rolls(snowCast), []);
+  assert.equal(rolls(snowOrdinary)[0].scaling.mode, 'cantrip');
+  assert.equal(rolls(snowElemental)[0].formula, '1d12');
+  const [plumeCast, airPlume] = actions('tome-planarplume');
+  assert.deepEqual([rolls(plumeCast), prompts(plumeCast)], [[], []]);
+  assert.deepEqual([rolls(airPlume)[0].formula, prompts(airPlume)[0].ability], ['8d8', 'str']);
+  assert.deepEqual(rolls(actions('2e-wizard-139')[0]), []);
   const bySourceId = new Map(snapshot.records.map(record => [record.id, record]));
   for (const row of inventory) {
     const item = keyed.get(row.key);
     const raw = bySourceId.get(row.key);
     assert.equal(item.flags[moduleId].canonicalRules, raw.rules);
+    assert.equal(row.rulesSha256, sha256(raw.rules));
     const native = actions(row.key);
+    assert.equal(row.rollReview.reviewed, true, row.key);
+    assert.ok(row.rollReview.rationale.trim(), row.key);
     assert.equal(native.filter(action => action.default).length, 1);
-    if (!row.rollReview.reviewed) assert.ok(native.every(action => !rolls(action).length && !prompts(action).length));
+    if (row.rollReview.category.endsWith('-manual') || row.rollReview.category === 'no-damage-no-save') {
+      assert.ok(native.every(action => !rolls(action).length && !prompts(action).length), row.key);
+    }
+    if (!row.rollReview.category.startsWith('cast-damage')) {
+      assert.ok(rolls(native.find(action => action.default)).every(roll => roll.type !== 'damage'), row.key);
+    }
     for (const action of native) {
       assert.deepEqual([action.effects, action.consumers, action.macro], [[], {}, '']);
+      for (const prompt of prompts(action)) {
+        assert.match(prompt.ability, /^(str|dex|con|int|wis|cha)$/);
+        assert.ok(prompt.onSave.trim(), row.key);
+        assert.match(prompt.saveDC.type, /^(custom|spellcasting)$/);
+      }
       for (const roll of rolls(action).filter(roll => roll.type === 'damage')) {
         assert.equal(roll.canCrit, false);
         if (roll.formula) assert.match(roll.formula, /^(?:\d+d\d+(?: ?\+ ?\d+)?|\d+)$/);

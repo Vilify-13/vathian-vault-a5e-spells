@@ -1,12 +1,12 @@
 {
   "archive": "vathian-vault-a5e-spells-0.2.0.zip",
-  "sha256": "8c9f8e150ae017a719641537342e2b6066b3741ee1280a4c21630f55e6946ca3",
+  "sha256": "4c7eac99ff22b2269473a1d565c4acbabd304958df0cbaeb249bbb4066abf7cb",
   "moduleFileHashes": {
-    "module.json": "aa415bc7018eb40df7536fcc732e6b62c71de700d97c10f3d7699c8e60e605cc",
+    "module.json": "55cbe4471ba8f23cedba2f26913952afd4d935ed4b8b1a4252430ee85f25f4e9",
     "packs/spells/000004.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "packs/spells/000005.ldb": "76368001e42962fee7b7111015ef9eb1f33e3e95bc506d5922b4709dfb52192d",
+    "packs/spells/000005.ldb": "e6c188f14e706f8ac556b1e055cdae2b2547dee36880d7c046f0861964fa5362",
     "packs/spells/CURRENT": "1005a525006f148c86efcbfb36c6eac091b311532448010f70f7de9a68007167",
-    "packs/spells/MANIFEST-000002": "214b76e0e2ca858c487dda975262c6b675d47f3425ad111bd82a3b556304e757"
+    "packs/spells/MANIFEST-000002": "8bef1a5a5595fbe91485a0b67db6494175cd741dd4f3bd805827dd706b2362c2"
   },
   "roundTripCount": 819,
   "toolingEvidence": "Official Foundry CLI 3.0.5, ClassicLevel 3.0.0; commands/package.mjs sha256:4fc0f5dd75eaefd30c941b114e8783213911e214ca36e9caa8d11d8a4da8352c",
@@ -131,6 +131,32 @@
         "sha256": "c9e984d623eae3bb13856c5af53949459ae5f9cd2ead628efd1d4f75a7ff1099"
       }
     }
+  },
+  "rollCoverage": {
+    "individuallyReviewed": 819,
+    "pending": 0,
+    "categories": {
+      "no-damage-no-save": 420,
+      "cast-damage": 28,
+      "cast-damage-and-save": 7,
+      "conditional-damage": 46,
+      "save-only-followup": 101,
+      "save-only": 69,
+      "multi-mode": 38,
+      "attack": 33,
+      "variable-damage-manual": 8,
+      "attack-manual": 7,
+      "conditional-damage-manual": 10,
+      "save-manual": 35,
+      "variable-damage": 15,
+      "multi-mode-manual": 2
+    },
+    "withDefaultDamage": 35,
+    "withAnyDamage": 134,
+    "withNativeSave": 245,
+    "withNativeAttack": 46,
+    "withFollowupAction": 259,
+    "withCantripScaling": 2
   },
   "canonicalRevision": null,
   "canonicalHashes": {

@@ -58,6 +58,11 @@ async function pack(source, localDriver, output) {
   assert.equal(expectedItems.filter(item => item.system.level === 9).length, 52);
   assert.equal(expectedItems.filter(item => item.flags[moduleId].deityAssociations.length).length, 318);
   const manifest = JSON.parse(await readFile(new URL('./module.json', import.meta.url), 'utf8'));
+  if (manifest.version === '0.2.0') {
+    assert.equal(audit.rollCoverage?.individuallyReviewed, audit.included, 'Release requires an individual rules review for every spell');
+    assert.equal(audit.rollCoverage.pending, 0);
+    assert.ok(expectedItems.every(item => item.flags[moduleId].rollReview?.reviewed === true));
+  }
   const driver = (await import(pathToFileURL(path.resolve(localDriver)))).default;
   assert.ok(typeof driver.evidence === 'string' && driver.evidence.trim(), 'Provide official CLI version and local command evidence');
   assert.ok(path.isAbsolute(driver.executable), 'Provide an absolute local executable path');
@@ -120,7 +125,7 @@ async function pack(source, localDriver, output) {
   await writeFile(path.join(root, 'release-receipt.json'), JSON.stringify({
     archive: path.basename(archive), sha256: sha256(await readFile(archive)), moduleFileHashes, roundTripCount: audit.included,
     toolingEvidence: driver.evidence, officialEvidence: audit.officialEvidence,
-    nativeValidation: audit.nativeValidation,
+    nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage,
     canonicalRevision: audit.canonicalRevision, canonicalHashes: audit.hashes, canonicalGitBlobs: audit.gitBlobs
   }, null, 2) + '\n', { flag: 'wx' });
 }

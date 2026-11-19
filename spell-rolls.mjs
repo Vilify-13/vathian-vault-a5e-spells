@@ -10,6 +10,11 @@ const formulaPattern = /^(?:[1-9]\d{0,2}d(?:3|4|6|8|10|12|20)(?: ?\+ ?[1-9]\d{0,
 
 export function validateReview(recordIds) {
   for (const id of Object.keys(rollReview)) assert.ok(recordIds.has(id), `No canonical record for roll review ${id}`);
+  for (const id of recordIds) {
+    assert.ok(Object.hasOwn(rollReview, id), `No individual rules review for ${id}`);
+    const { category, rationale } = rollReview[id];
+    assert.ok(category && rationale.trim(), `Incomplete rules review for ${id}`);
+  }
 }
 
 export function reviewFor(raw) {
@@ -39,9 +44,11 @@ function writePhase(action, phase, key) {
     };
   }
   if (phase.attack) {
-    assert.ok(attackTypes.has(phase.attack), `Unsupported attack type on ${key}`);
+    const { type, bonus = '' } = typeof phase.attack === 'string' ? { type: phase.attack } : phase.attack;
+    assert.ok(attackTypes.has(type), `Unsupported attack type on ${key}`);
+    assert.ok(bonus === '' || /^[1-9]\d?$/.test(bonus), `Unsupported attack bonus on ${key}`);
     action.rolls[documentId(`${key}:attack`)] = { type: 'attack', default: true, label: '',
-      ability: 'default', attackType: phase.attack, bonus: '', critThreshold: 20, proficient: true };
+      ability: 'default', attackType: type, bonus, critThreshold: 20, proficient: true };
   }
   if (phase.savingThrow) {
     const { ability, onSave, bonus } = phase.savingThrow;
