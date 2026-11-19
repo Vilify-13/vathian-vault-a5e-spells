@@ -1,0 +1,38 @@
+{
+  "id": "vathian-vault-a5e-spells",
+  "title": "Vathian Vault A5e Spells",
+  "description": "Private Vathian Vault spell compendium for Level Up: Advanced 5th Edition.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "14",
+    "maximum": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "a5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "1.5.2",
+          "maximum": "1.5.999"
+        }
+      }
+    ]
+  },
+  "packs": [
+    {
+      "name": "spells",
+      "label": "Vathian Vault Spells",
+      "path": "packs/spells",
+      "type": "Item",
+      "system": "a5e",
+      "ownership": {
+        "PLAYER": "NONE",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "url": "https://github.com/Vilify-13/vathian-vault-a5e-spells",
+  "manifest": "https://raw.githubusercontent.com/Vilify-13/vathian-vault-a5e-spells/main/module.json",
+  "download": "https://raw.githubusercontent.com/Vilify-13/vathian-vault-a5e-spells/v0.1.0/releases/vathian-vault-a5e-spells-0.1.0.zip"
+}

@@ -1,0 +1,8 @@
+/input/
+/build/
+/node_modules/
+*.zip
+
+/build-test-temp/
+!/releases/
+!/releases/*.zip
