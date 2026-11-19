@@ -67,9 +67,9 @@ async function pack(source, localDriver, output) {
   assert.equal(expectedItems.filter(item => item.flags[moduleId].deityAssociations.length).length, 318);
   const manifest = JSON.parse(await readFile(new URL('./module.json', import.meta.url), 'utf8'));
   const runtimeFiles = manifest.esmodules?.length ? ['scripts/spell-chat.mjs', 'scripts/save-rules.mjs'] : [];
-  if (manifest.version === '0.2.1') {
+  if (['0.2.1', '0.2.2'].includes(manifest.version)) {
     assert.deepEqual(manifest.esmodules, [runtimeFiles[0]], 'Release must load the verified chat entry point');
-    assert.ok(manifest.download.endsWith(`/main/releases/${moduleId}-0.2.1.zip`));
+    assert.ok(manifest.download.endsWith(`/main/releases/${moduleId}-${manifest.version}.zip`));
     assert.equal(audit.rollCoverage?.individuallyReviewed, audit.included, 'Release requires an individual rules review for every spell');
     assert.equal(audit.rollCoverage.pending, 0);
     assert.equal(audit.freshReviewCoverage?.reviewed, audit.included, 'Release requires a fresh rules review for every included spell');
