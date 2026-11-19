@@ -64,6 +64,8 @@ async function pack(source, localDriver, output) {
     assert.ok(manifest.download.endsWith(`/main/releases/${moduleId}-0.2.1.zip`));
     assert.equal(audit.rollCoverage?.individuallyReviewed, audit.included, 'Release requires an individual rules review for every spell');
     assert.equal(audit.rollCoverage.pending, 0);
+    assert.equal(audit.freshReviewCoverage?.reviewed, audit.included, 'Release requires a fresh rules review for every included spell');
+    assert.equal(audit.freshReviewCoverage.pending, 0);
     assert.ok(expectedItems.every(item => item.flags[moduleId].rollReview?.reviewed === true));
   }
   const driver = (await import(pathToFileURL(path.resolve(localDriver)))).default;
@@ -131,6 +133,7 @@ async function pack(source, localDriver, output) {
     archive: path.basename(archive), sha256: sha256(await readFile(archive)), moduleFileHashes, roundTripCount: audit.included,
     toolingEvidence: driver.evidence, officialEvidence: audit.officialEvidence,
     nativeValidation: audit.nativeValidation, rollCoverage: audit.rollCoverage, chatSaveCoverage: audit.chatSaveCoverage,
+    freshReviewCoverage: audit.freshReviewCoverage,
     canonicalRevision: audit.canonicalRevision, canonicalHashes: audit.hashes, canonicalGitBlobs: audit.gitBlobs
   }, null, 2) + '\n', { flag: 'wx' });
 }

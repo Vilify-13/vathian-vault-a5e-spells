@@ -1,4 +1,4 @@
-import { dcRollLabel, getContextSave, getDynamicSave, moduleId, resolveDynamicSave } from './save-rules.mjs';
+import { dcRollLabel, getContextSaves, getDynamicSave, moduleId, resolveDynamicSave } from './save-rules.mjs';
 
 const idPattern = /^[A-Za-z0-9]{16}$/;
 const abilityNames = { str: 'Strength', dex: 'Dexterity', con: 'Constitution', int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma' };
@@ -13,10 +13,14 @@ export function recordSpellCard(message, userId, game, resolveItem) {
   const action = item?.actions?.get(system.actionId);
   if (item?.type !== 'spell' || !source?.chatSaves || !action || item.actor?.uuid !== system.actorId) return;
   const dynamic = action.default && getDynamicSave(source.sourceKey) ? source.sourceKey : null;
-  const context = getContextSave(source.sourceKey);
-  const useContext = context && (context.action ? action.name === context.action : action.default);
-  if (!dynamic && !useContext && !system.prompts?.some(prompt => prompt.type === 'savingThrow')) return;
-  const flag = useContext ? { context: source.sourceKey } : { dynamic };
+  const contextRules = getContextSaves(source.sourceKey);
+  const contextIndex = contextRules.findIndex(context => context.action ? action.name === context.action : action.default);
+  const context = contextRules[contextIndex];
+  const useContext = Boolean(context);
+  const hasFollowups = action.default && [...item.actions.values()].some(candidate => !candidate.default);
+  if (!dynamic && !useContext && !hasFollowups && !system.prompts?.some(prompt => prompt.type === 'savingThrow')) return;
+  const flag = useContext ? { context: source.sourceKey, ...(contextIndex ? { contextIndex } : {}) } : { dynamic };
+  if (hasFollowups) flag.followups = true;
   if (useContext && (context.ability === 'casterSpellcasting' || context.useCasterDC)) {
     const { actor } = item;
     const bookId = item.system.spellBook;
@@ -80,6 +84,34 @@ function checkbox(parent, text) {
   return field;
 }
 
+function addFollowupControls(article, message, api) {
+  if (article.dataset.vathianFollowups) return;
+  const item = message.item;
+  if (item?.type !== 'spell' || !item.flags?.[moduleId]?.chatSaves || !item.actor?.isOwner
+    || item.actor.uuid !== message.system.actorId || item.uuid !== message.system.itemId) return;
+  const followups = [...item.actions].filter(([id, action]) => idPattern.test(id) && !action.default);
+  if (!followups.length) return;
+  const details = makeElement(article, 'details');
+  makeElement(details, 'summary', 'Follow-up and alternate Actions');
+  const label = makeElement(details, 'label', 'Select an Action only if its trigger or mode applies. ');
+  const select = makeElement(label, 'select');
+  makeElement(select, 'option', 'Choose an Action').value = '';
+  const available = new Set();
+  for (const [id, action] of followups) {
+    makeElement(select, 'option', action.name).value = id;
+    available.add(id);
+  }
+  const button = makeElement(details, 'button', 'Use selected Action');
+  button.type = 'button';
+  button.addEventListener('click', () => {
+    const id = select.value;
+    if (!visibleCard(message, api.game.user) || !item.actor.isOwner || !available.has(id)
+      || item.actions.get(id)?.default !== false) return;
+    item.activate(id, { executeMacro: false });
+  }, { capture: true });
+  article.dataset.vathianFollowups = 'true';
+}
+
 function bindSaveButton(button, status, message, ability, dc, api, getAdjustments = () => ({})) {
   button.addEventListener('click', async event => {
     if (!visibleCard(message, api.game.user)) return;
@@ -129,7 +161,7 @@ function bindSaveButton(button, status, message, ability, dc, api, getAdjustment
 }
 
 function renderContextSave(article, message, flag, api, canSeeDC) {
-  const context = getContextSave(flag.context);
+  const context = getContextSaves(flag.context)[flag.contextIndex ?? 0];
   if (!context) return false;
   const section = makeElement(article, 'section');
   const dc = context.fixed ?? (context.useCasterDC ? flag.dc : undefined);
@@ -171,12 +203,14 @@ export function enhanceSpellCard(message, html, api) {
   const root = html?.querySelector ? html : html?.[0];
   const article = root?.querySelector('article.a5e-chat-card__body');
   if (!article || article.dataset.vathianSaveCard) return;
+  if (flag.followups) addFollowupControls(article, message, api);
   const { user, settings } = api.game;
   const caster = message.actor;
   const canSeeDC = user.isGM || !settings.get('a5e', 'protectRolls') || caster?.type === 'character'
     || caster?.testUserPermission?.(user, 'OBSERVER');
   if (flag.context) {
     if (!renderContextSave(article, message, flag, api, canSeeDC)) return;
+    article.dataset.vathianSaveCard = 'true';
   } else if (flag.dynamic) {
     const dynamic = getDynamicSave(flag.dynamic);
     if (!dynamic) return;
@@ -206,7 +240,8 @@ export function enhanceSpellCard(message, html, api) {
       bindSaveButton(button, status, message, dynamic.ability, canSeeDC ? dc : null, api, () => ({ dynamic,
         modifiers: { shield: shield.checked, armor: armor.checked, missile: missile ? missile.valueAsNumber : 0 } }));
     }
-  } else {
+  }
+  if (!flag.dynamic) {
     const prompts = message.system.prompts ?? [];
     const section = article.querySelector('section.prompts');
     const buttons = section?.querySelectorAll('button.save-prompt');

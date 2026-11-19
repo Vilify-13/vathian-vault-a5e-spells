@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { documentId } from './build.mjs';
 import { rollReview } from './roll-review.mjs';
-import { dcRollBonus, dcRollLabel, getContextSave, getDynamicSave } from './scripts/save-rules.mjs';
+import { dcRollBonus, dcRollLabel, getContextSaves, getDynamicSave } from './scripts/save-rules.mjs';
 import { applySaveCorrection, saveCorrections } from './save-review.mjs';
+import { applyFreshActionChanges, genericRolls } from './reaudit-actions.mjs';
+import { getFreshReview } from './fresh-spell-review.mjs';
 
 const abilities = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
 const attackTypes = new Set(['meleeSpellAttack', 'rangedSpellAttack']);
@@ -27,14 +29,19 @@ export function reviewFor(raw) {
   if (dynamicSave) return { reviewed: true, category: 'rolled-dc-save', dynamicSave, saveEvidence: 'explicit-rolled-dc',
     rationale: 'The caster rolls the DC. Select one defender at a time and apply listed shield, armor and magical missile rules as applicable. Apply the reported damage manually.' };
   if (entry) {
-    const contextSave = getContextSave(raw.id);
-    if (contextSave) {
-      const followups = [...(entry.followups ?? [])];
-      if (contextSave.action) followups.push({ name: contextSave.action, rationale: contextSave.instructions });
-      return { ...entry, reviewed: true, followups, contextSave, category: 'contextual-dc-save',
-        saveEvidence: 'source-defined-context', rationale: contextSave.instructions };
+    const prior = applySaveCorrection(raw.id, entry);
+    const fresh = getFreshReview(raw.id);
+    const updated = applyFreshActionChanges(raw.id, prior, fresh);
+    const contextSaves = getContextSaves(raw.id);
+    if (contextSaves.length) {
+      const followups = [...(updated.followups ?? [])];
+      for (const context of contextSaves) {
+        if (context.action) followups.push({ name: context.action, rationale: context.instructions });
+      }
+      return { ...updated, reviewed: true, followups, contextSaves, category: 'contextual-dc-save',
+        saveEvidence: 'source-defined-context', rationale: fresh?.rationale ?? contextSaves[0].instructions };
     }
-    return { reviewed: true, ...applySaveCorrection(raw.id, entry) };
+    return { reviewed: true, ...updated };
   }
   const hints = {
     damageText: /\bdamage\b/i.test(raw.rules),
@@ -57,8 +64,7 @@ export function saveAuditFor(raw, decision) {
     }
   }
   if (decision.dynamicSave) saves.push({ action: 'Cast', dc: 'rolled', ability: decision.dynamicSave.ability });
-  if (decision.contextSave) {
-    const { fixed, useCasterDC, ability, action } = decision.contextSave;
+  for (const { fixed, useCasterDC, ability, action } of decision.contextSaves ?? []) {
     saves.push({ action: action ?? 'Cast', dc: fixed ? 'fixed' : useCasterDC ? 'caster' : 'context', value: fixed ?? null, ability });
   }
   const sourceLimits = [];
@@ -92,10 +98,10 @@ function writePhase(action, phase, key) {
     assert.ok(damageTypes.has(entry.type), `Unsupported damage type on ${key}`);
     const cantrip = entry.cantrip;
     if (cantrip) assert.equal(entry.formula, `1d${cantrip}`, 'Cantrip progression requires a reviewed single base die');
-    if (entry.modifier) assert.ok(cantrip && entry.modifier === '@spell.mod + @str.mod');
+    if (entry.modifier) assert.ok(entry.modifier === '@spell.mod' || (cantrip && entry.modifier === '@spell.mod + @str.mod'));
     action.rolls[documentId(`${key}:damage:${index}`)] = {
       type: 'damage', default: true, label: '', damageType: entry.type, canCrit: false, critBonus: '',
-      formula: cantrip ? entry.modifier ?? '' : entry.formula,
+      formula: cantrip ? entry.modifier ?? '' : [entry.formula, entry.modifier].filter(Boolean).join(' + '),
       die: { number: cantrip ? 1 : 0, denom: cantrip ?? 0, modifiers: [] },
       scaling: { mode: cantrip ? 'cantrip' : null, config: { value: '', number: cantrip ? 1 : 0, denom: 0, cap: 5 } }
     };
@@ -114,6 +120,10 @@ function writePhase(action, phase, key) {
   }
   if (phase.generic === 'sigil-attack') addGeneric(action, key, 'Triggered spell attack', dcRollBonus, 1, 20);
   if (phase.generic === 'uplift-expiration') addGeneric(action, key, 'Untyped damage on expiration', '', 2, 6);
+  if (Object.hasOwn(genericRolls, phase.generic)) {
+    const { label, formula } = genericRolls[phase.generic];
+    addGeneric(action, key, label, formula, 0, 0);
+  }
 }
 
 function addGeneric(action, key, label, formula, number, denom) {

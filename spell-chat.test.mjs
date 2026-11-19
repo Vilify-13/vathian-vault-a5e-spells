@@ -148,3 +148,26 @@ test('cancellation, omitted DC rolls, and private cards leave game state untouch
   await cancelled.buttons[0].click();
   assert.equal(cancelled.section.children[0].textContent, 'No saving throw was posted.');
 });
+
+test('only the casting actor’s owner can explicitly activate a labeled follow-up', async () => {
+  const id = '0086ddcbf326204e';
+  const message = card('tome-lightningshield');
+  message.flags[moduleId] = { saveCard: { followups: true } };
+  const ids = [];
+  message.item = { type: 'spell', uuid: message.system.itemId, actor: { uuid: caster.uuid, isOwner: false },
+    flags: { [moduleId]: { chatSaves: true } }, actions: new Map([[id, { name: 'Blue Shield retaliates', default: false }]]),
+    activate: action => ids.push(action) };
+  const api = runtime(player, []);
+  assert.equal(render(message, api).article.children.length, 0);
+  message.item.actor.isOwner = true;
+  const section = render(message, api).article.children[0];
+  assert.equal(section.tag, 'details');
+  const [_, label, button] = section.children;
+  label.children[0].value = id;
+  assert.deepEqual(ids, []);
+  await button.handler();
+  assert.deepEqual(ids, [id]);
+  message.item.actor.isOwner = false;
+  await button.handler();
+  assert.deepEqual(ids, [id]);
+});

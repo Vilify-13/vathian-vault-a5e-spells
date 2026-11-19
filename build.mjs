@@ -131,6 +131,7 @@ export async function buildWithAdapter(input, adapter, output) {
       .some(roll => roll.scaling?.mode === 'cantrip')))
   } : null;
   const chatRows = inventory.filter(row => row.chatSave);
+  const freshRows = chatRows.filter(row => row.freshReview);
   const chatSaveCoverage = chatRows.length ? {
     withCompactCastDescription: count(item => spellActions(item).some(action => action.default && action.descriptionOutputs?.includes('action')
       && !action.descriptionOutputs.includes('item') && action.description)),
@@ -149,6 +150,11 @@ export async function buildWithAdapter(input, adapter, output) {
     saveAbilityUnspecified: chatRows.filter(row => row.chatSave.sourceLimits.includes('save-ability-unspecified')).length,
     sourceHeaderWithoutMappedSave: chatRows.filter(row => row.chatSave.sourceLimits.includes('ability-in-header-without-confirmed-native-save')).length
   } : null;
+  const freshReviewCoverage = chatRows.length ? {
+    reviewed: freshRows.length, pending: chatRows.length - freshRows.length,
+    decisions: Object.fromEntries(['adjusted', 'retained', 'manual'].map(status => [status,
+      freshRows.filter(row => row.freshReview.status === status).length]))
+  } : null;
   if (snapshot.format.countBasis === 'included') assert.equal(items.length, snapshot.count);
   assert.ok(items.length, 'No included spells');
   const audit = {
@@ -156,7 +162,7 @@ export async function buildWithAdapter(input, adapter, output) {
     canonicalRevision: adapter.canonicalRevision ?? null,
     hashes: snapshot.hashes, gitBlobs: snapshot.gitBlobs, officialEvidence: adapter.evidence,
     nativeValidation: adapter.nativeValidation ?? null,
-    rollCoverage, chatSaveCoverage,
+    rollCoverage, chatSaveCoverage, freshReviewCoverage,
     manifestCount: snapshot.count, countBasis: snapshot.format.countBasis, decoded: snapshot.records.length,
     included: items.length, omitted: inventory.length - items.length,
     itemHashes: Object.fromEntries(items.map(item => [item._id, sha256(json(item))])),
@@ -174,6 +180,7 @@ export async function buildWithAdapter(input, adapter, output) {
   console.log(`Built ${items.length} Item sources. Omitted ${audit.omitted}. Blocking native mapping gaps on ${audit.withUnresolvedMechanics}.`);
   if (rollCoverage) console.log(JSON.stringify(rollCoverage, null, 2));
   if (chatSaveCoverage) console.log(JSON.stringify(chatSaveCoverage, null, 2));
+  if (freshReviewCoverage) console.log(JSON.stringify(freshReviewCoverage, null, 2));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

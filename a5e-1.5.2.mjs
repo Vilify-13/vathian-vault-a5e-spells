@@ -7,6 +7,7 @@ import { buildWithAdapter, documentId, moduleId, sha256 } from './build.mjs';
 import { approvedEligibilitySha256, createNativeAdapter } from './canonical.mjs';
 import { classIds, mechanicalPlan } from './native-adapter.mjs';
 import { nativeRollActions, reviewFor, saveAuditFor, validateReview } from './spell-rolls.mjs';
+import { getFreshReview, verifyFreshReviews } from './fresh-spell-review.mjs';
 
 export const a5eRevision = '6d8c39f2e5c9ec6bbbbf1388a24005a5a6e10c8c';
 const version = '1.5.2';
@@ -20,6 +21,8 @@ const files = {
   rolls: 'src/dataModels/item/actions/ActionRollsDataModel.ts',
   prompts: 'src/dataModels/item/actions/ActionPromptsDataModel.ts',
   rollState: 'src/managers/RollStateManager.ts', rollPreparation: 'src/managers/RollPreparationManager.ts',
+  actionsManager: 'src/managers/ActionsManager.ts', modifiersManager: 'src/managers/ModifierManager.ts',
+  bonusesManager: 'src/managers/BonusesManager.ts',
   chatCreation: 'src/documents/item/item.svelte.ts', damageButtons: 'src/view/chat/components/DamageButtons.svelte',
   itemCard: 'src/view/chat/ItemCard.svelte', itemCardData: 'src/dataModels/chat/ItemCardDataModel.ts',
   renderChat: 'src/hooks/renderChatMessageHTML.ts', chatCreateHook: 'src/hooks/preCreateChatMessage.ts',
@@ -73,6 +76,11 @@ export async function readReference(directory) {
   assert.match(sources.rolls, /const damageRollSchema/);
   assert.match(sources.prompts, /saveDC: new fields.SchemaField/);
   assert.match(sources.rollState, /getDefaultIds\('rolls'\)/);
+  assert.match(sources.actions, /if \(!prop\.formulaInvalid\) acc\.push\(prop\.id\)/);
+  assert.match(sources.actionsManager, /extends Map<string, A5EActionData>/);
+  assert.match(sources.chatCreation, /async activate\(actionId: string \| null/);
+  assert.match(sources.modifiersManager, /#getGlobalAttackBonus\(/);
+  assert.match(sources.bonusesManager, /if \(!attackTypes\?\.includes\(type\)\) return false/);
   assert.match(sources.rollPreparation, /new DamageRoll/);
   assert.match(sources.chatCreation, /rolls: rolls.map/);
   assert.match(sources.chatCreation, /selectedPrompts: rollState\.config\.defaults\.prompts/);
@@ -213,6 +221,7 @@ export function makeAdapter(reference) {
   const prepare = adapter.prepare;
   adapter.prepare = snapshot => {
     validateReview(new Set(snapshot.records.map(record => record.id)));
+    verifyFreshReviews(snapshot.records);
     return prepare(snapshot);
   };
   adapter.map = (raw, index) => {
@@ -221,6 +230,7 @@ export function makeAdapter(reference) {
     mapped.review.rollReview = decision;
     mapped.review.rulesSha256 = sha256(raw.rules);
     mapped.review.chatSave = saveAuditFor(raw, decision);
+    mapped.review.freshReview = getFreshReview(raw.id) ?? null;
     mapped.sourceFlags = { ...mapped.sourceFlags, canonicalRules: raw.rules, canonicalSummary: raw.summary,
       chatSaves: true, manualMechanics: mapped.review.nativeTreatment,
       rollReview: { reviewed: decision.reviewed, category: decision.category } };

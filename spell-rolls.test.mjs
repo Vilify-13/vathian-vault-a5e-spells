@@ -100,7 +100,8 @@ test('official-source-bound roll build preserves the corpus and gates later mech
   assert.equal(rolls(snowOrdinary)[0].scaling.mode, 'cantrip');
   assert.equal(rolls(snowElemental)[0].formula, '1d12');
   const [plumeCast, airPlume] = actions('tome-planarplume');
-  assert.deepEqual([rolls(plumeCast), prompts(plumeCast)], [[], []]);
+  assert.deepEqual(rolls(plumeCast).map(roll => [roll.type, roll.formula]), [['generic', '1d12']]);
+  assert.deepEqual(prompts(plumeCast), []);
   assert.deepEqual([rolls(airPlume)[0].formula, prompts(airPlume)[0].ability], ['8d8', 'str']);
   assert.deepEqual(rolls(actions('2e-wizard-139')[0]), []);
   for (const id of ['2e-wizard-983', '2e-wizard-989', '2e-wizard-958']) {
@@ -110,6 +111,18 @@ test('official-source-bound roll build preserves the corpus and gates later mech
     assert.deepEqual(prompts(cast), []);
   }
   assert.deepEqual(prompts(actions('tome-castigate')[0]).map(prompt => [prompt.ability, prompt.saveDC.type]), [['cha', 'spellcasting']]);
+  const [missileCast, extraMissile, missileBurst] = actions('2e-wizard-357');
+  assert.deepEqual(rolls(missileCast).map(roll => [roll.type, roll.formula, roll.damageType]), [['damage', '2d4', 'force']]);
+  assert.deepEqual(prompts(missileCast), []);
+  assert.equal(rolls(extraMissile)[0].formula, '2d4');
+  assert.equal(prompts(missileBurst)[0].ability, 'con');
+  const [ripCast] = actions('tome-rip');
+  assert.equal(rolls(ripCast)[0].formula, '4d6');
+  assert.equal(prompts(ripCast)[0].ability, 'str');
+  const [produceIce, slip, swim] = actions('2e-priest-874');
+  assert.equal(rolls(produceIce)[0].formula, '2d4');
+  assert.equal(prompts(produceIce)[0].ability, 'con');
+  assert.deepEqual([slip, swim].map(action => prompts(action)[0].ability), ['dex', 'dex']);
   const [thunderCast, thunderEntry] = actions('tome-lightningstorm');
   assert.deepEqual(rolls(thunderCast).map(roll => roll.formula), ['8d6', '5d6']);
   assert.deepEqual(prompts(thunderEntry).map(prompt => prompt.ability), ['con']);
@@ -130,6 +143,7 @@ test('official-source-bound roll build preserves the corpus and gates later mech
     const raw = bySourceId.get(row.key);
     assert.equal(item.flags[moduleId].canonicalRules, raw.rules);
     assert.equal(row.rulesSha256, sha256(raw.rules));
+    assert.equal(row.freshReview.rulesSha256, row.rulesSha256, row.key);
     const native = actions(row.key);
     assert.equal(row.rollReview.reviewed, true, row.key);
     assert.ok(row.rollReview.rationale.trim(), row.key);
@@ -153,7 +167,7 @@ test('official-source-bound roll build preserves the corpus and gates later mech
       }
       for (const roll of rolls(action).filter(roll => roll.type === 'damage')) {
         assert.equal(roll.canCrit, false);
-        if (roll.formula) assert.match(roll.formula, /^(?:\d+d\d+(?: ?\+ ?\d+)?|\d+|@spell\.mod \+ @str\.mod)$/);
+        if (roll.formula) assert.match(roll.formula, /^(?:\d+d\d+(?: ?\+ ?(?:\d+|@spell\.mod))?|\d+|@spell\.mod \+ @str\.mod)$/);
       }
     }
   }

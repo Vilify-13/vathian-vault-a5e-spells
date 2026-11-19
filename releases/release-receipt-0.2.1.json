@@ -1,14 +1,14 @@
 {
   "archive": "vathian-vault-a5e-spells-0.2.1.zip",
-  "sha256": "e306df1df336d40a5859f6f07e9fa3345d07919bc2964e44014d6a94934d821c",
+  "sha256": "6b78b45e475d33d6e31b246cd077d5f13a95159b21d7500a84202cf441d03627",
   "moduleFileHashes": {
     "module.json": "1aa85f6afff4cc5f3ed218171717de9c0f5921d5e725548b3c1e40f16da941c1",
-    "scripts/spell-chat.mjs": "ec0255f7baa8dddbe913c0e4e8bd6fede9bd6d83d07fad72efff7113fa899123",
-    "scripts/save-rules.mjs": "f0d45db11c6b3ffa567608d1114954333a338ac84c78f4b444542d1a46210f0a",
+    "scripts/spell-chat.mjs": "ef775a7dd48b46f14ff719b751c7646e57d4ad47d62b3f74d3ff0ad96620c360",
+    "scripts/save-rules.mjs": "cbcc9e9ae52de5c388e2b1c281feac12ef9ac6f33b2d45a9d41cc594f427f4e6",
     "packs/spells/000004.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "packs/spells/000005.ldb": "47c0dadfd26610d4eacc7e238c488680b331b1f79f9c6e7963695f9d0d8dac67",
+    "packs/spells/000005.ldb": "02870aa5b16e2485938ef3ad99fa7fb14c888ff0f177f4c64f637c26f1cdf58e",
     "packs/spells/CURRENT": "1005a525006f148c86efcbfb36c6eac091b311532448010f70f7de9a68007167",
-    "packs/spells/MANIFEST-000002": "d1756e8c0635fca50587a3fd778cfe4fde366f5de612bbdd6240f630b548a616"
+    "packs/spells/MANIFEST-000002": "c6f9a06d44c97363f3cb670ad43f0eebe4648202b6f209459e12b8878f985e70"
   },
   "roundTripCount": 819,
   "toolingEvidence": "Official Foundry CLI 3.0.5, ClassicLevel 3.0.0; commands/package.mjs sha256:4fc0f5dd75eaefd30c941b114e8783213911e214ca36e9caa8d11d8a4da8352c",
@@ -83,6 +83,18 @@
       "rollPreparation": {
         "file": "src/managers/RollPreparationManager.ts",
         "sha256": "1e6c53dbca18bdde11a3bd28e07caa3a5401779d3908fc4c93928808233d8951"
+      },
+      "actionsManager": {
+        "file": "src/managers/ActionsManager.ts",
+        "sha256": "8ae97479aedcb8f4bb3402b6a076049ff51465ab752ba7c1c0ea527dadf4341f"
+      },
+      "modifiersManager": {
+        "file": "src/managers/ModifierManager.ts",
+        "sha256": "e920aa375ce244fd75e81e7d367710da214a53b5e30bc6677ea0f29c78fdfd6e"
+      },
+      "bonusesManager": {
+        "file": "src/managers/BonusesManager.ts",
+        "sha256": "50c41a47cf6b72129fd7ceeed721406bea12c5da369c3cb87165d8825ba1a1f4"
       },
       "chatCreation": {
         "file": "src/documents/item/item.svelte.ts",
@@ -171,49 +183,59 @@
     "pending": 0,
     "categories": {
       "no-damage-no-save": 406,
-      "cast-damage-and-save": 33,
-      "conditional-damage": 44,
-      "save-only-followup": 111,
-      "save-only": 100,
-      "multi-mode": 37,
-      "attack": 33,
+      "cast-damage-and-save": 37,
+      "conditional-damage": 47,
+      "save-only-followup": 106,
+      "save-only": 95,
+      "multi-mode": 35,
+      "attack": 34,
       "rolled-dc-save": 3,
-      "attack-manual": 6,
-      "contextual-dc-save": 14,
-      "cast-damage": 3,
-      "variable-damage-manual": 3,
-      "variable-damage": 15,
-      "conditional-damage-manual": 7,
-      "multi-mode-manual": 2,
-      "save-manual": 2
+      "contextual-dc-save": 26,
+      "variable-damage": 14,
+      "conditional-damage-manual": 5,
+      "attack-manual": 3,
+      "variable-damage-manual": 2,
+      "cast-damage": 2,
+      "multi-mode-manual": 1,
+      "save-manual": 2,
+      "summon-roll": 1
     },
-    "withDefaultDamage": 36,
-    "withAnyDamage": 137,
-    "withNativeSave": 326,
-    "withNativeAttack": 46,
-    "withFollowupAction": 298,
+    "withDefaultDamage": 39,
+    "withAnyDamage": 145,
+    "withNativeSave": 328,
+    "withNativeAttack": 49,
+    "withFollowupAction": 304,
     "withCantripScaling": 3
   },
   "chatSaveCoverage": {
     "withCompactCastDescription": 819,
-    "withInteractiveSave": 343,
-    "withSaveOnCast": 138,
+    "withInteractiveSave": 350,
+    "withSaveOnCast": 144,
     "byDC": {
-      "caster": 314,
+      "caster": 317,
       "fixed": 20,
       "rolled": 3,
-      "context": 12
+      "context": 19
     },
-    "correctiveDecisions": 106,
-    "baselineDecisionsRetained": 713,
+    "correctiveDecisions": 147,
+    "baselineDecisionsRetained": 672,
     "priorManualOnly": 62,
     "priorManualOnlyNowInteractive": 39,
-    "priorManualOnlyChanged": 42,
+    "priorManualOnlyChanged": 49,
     "priorSecondaryOnly": 213,
-    "priorSecondaryOnlyChanged": 23,
-    "manualOnly": 20,
+    "priorSecondaryOnlyChanged": 45,
+    "manualOnly": 13,
     "saveAbilityUnspecified": 2,
-    "sourceHeaderWithoutMappedSave": 8
+    "sourceHeaderWithoutMappedSave": 3
+  },
+  "freshReviewCoverage": {
+    "reviewed": 819,
+    "pending": 0,
+    "decisions": {
+      "adjusted": 42,
+      "retained": 762,
+      "manual": 15
+    }
   },
   "canonicalRevision": null,
   "canonicalHashes": {

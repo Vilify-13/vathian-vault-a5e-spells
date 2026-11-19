@@ -45,7 +45,44 @@ const contextSaves = {
     instructions: 'Enter the adjudicated Quest DC. Success halves the shower or splash. Direct star impact allows no save. The shower’s fire and lightning split is unspecified.' }
 };
 
-export const getContextSave = key => Object.hasOwn(contextSaves, key) ? contextSaves[key] : undefined;
+const extraContextSaves = {
+  '2e-priest-810': [
+    { action: 'Wards — hostile entry', ability: 'cha', modifier: -4,
+      instructions: 'Enter the adjudicated Quest DC. On failure use the separate untyped damage roll; the source also directs the affected creature to flee.' },
+    { action: 'Wards — affected creature leaves', ability: 'cha', modifier: -4,
+      instructions: 'Enter the adjudicated Quest DC. Success avoids blindness.' },
+    { action: 'Chaos — hostile entry', ability: 'cha', modifier: -4,
+      instructions: 'Enter the adjudicated Quest DC. Success avoids confusion. Resolve the separate phantasmal-killer chance manually.' }
+  ],
+  'tome-oblivion': [{ ability: 'cha', fixed: 20, casterOnly: true,
+    instructions: 'The caster saves separately at casting. Failure causes Doomed. Eligible targets still use the Constitution prompt.' }],
+  '2e-priest-771': [
+    { ability: 'wis', useCasterDC: true, casterOnly: true, instructions: 'Roll against your own spell save DC as part of casting. On failure the spell ends.' },
+    { action: 'Disbelief expires — resolve recorded damage', ability: 'wis', useCasterDC: true, casterOnly: true,
+      instructions: 'Take one eighth of the recorded damage on success or half on failure, rounded down. Resolve any force from ejection separately.' }
+  ],
+  '2e-wizard-242': [{ action: 'Negotiate with the confined creature', ability: 'int',
+    instructions: 'Enter the caster’s save DC plus persuasion value from 0 to 6 and the complete days confined. Success refuses the offer. Repeat only after 24 hours.' }],
+  '2e-priest-801': [{ ability: 'con', instructions: 'Only enemies save against blindness at cast. Enter the adjudicated Quest DC. The initial mote and miniature sun have no save.' }],
+  'tome-deathshade': [{ ability: 'con', fixed: 15, casterOnly: true, instructions: 'The caster saves as part of casting. On failure, use the separate caster backlash damage action and apply the other consequences manually.' }],
+  '2e-priest-698': [{ action: 'Self-protection — outside magical emotion reader', ability: 'wis', casterOnly: true,
+    instructions: 'Enter the reader’s save DC. Add +1 per five class levels in the roll dialog. A success reveals the chosen emotion to the reader.' }],
+  '2e-priest-805': [
+    { action: 'Initial fear spread — creatures near the focus', ability: 'wis', modifier: -4,
+      instructions: 'Enter the adjudicated Quest DC. The original focus does not save. The initial spread save is at -4.' },
+    { action: 'Later contact with contagious fear', ability: 'wis',
+      instructions: 'Enter the adjudicated Quest DC. Later contagion uses the unpenalized save. Use mass-combat morale rules separately.' }
+  ],
+  '2e-priest-844': [{ action: 'Later post-expiration deprivation save', ability: 'con', casterOnly: true,
+    instructions: 'Enter 10 plus the number of preceding deprivation saves. Repeat only at a qualifying four-hour interval while unsupplied.' }],
+  'tome-sealdestiny': [{ ability: 'wis', fixed: 15, casterOnly: true, instructions: 'The caster saves at casting. A failure adds one level of strife.' }],
+  'tome-spy': [{ action: 'Destroyed sensory organ — resist impairment', ability: 'con', casterOnly: true,
+    instructions: 'Enter the higher of 10 or half the damage done to the organ. On failure the caster is blinded or deafened. The force backlash is separate.' }],
+  '2e-priest-797': [{ ability: 'con', fixed: 15, casterOnly: true, instructions: 'The caster saves at casting to avoid permanent loss of one Constitution. The subject’s resistance uses a different action.' }]
+};
+
+export const getContextSaves = key => Object.hasOwn(extraContextSaves, key) ? extraContextSaves[key]
+  : Object.hasOwn(contextSaves, key) ? [contextSaves[key]] : [];
 
 export function resolveDynamicSave(rule, baseDC, saveTotal, { shield = false, missile = 0, armor = false } = {}) {
   if (![baseDC, saveTotal, missile].every(Number.isSafeInteger) || missile < 0 || (!rule.missile && missile)) {
