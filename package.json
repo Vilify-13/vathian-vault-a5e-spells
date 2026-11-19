@@ -1,0 +1,22 @@
+{
+  "name": "vathian-vault-a5e-spells",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test",
+    "review": "node canonical.mjs",
+    "stage-native": "node native-adapter.mjs stage",
+    "build-native": "node native-adapter.mjs build",
+    "build": "node build.mjs",
+    "pack": "node pack.mjs"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "3.0.5"
+  },
+  "allowScripts": {
+    "classic-level@3.0.0": true
+  }
+}
